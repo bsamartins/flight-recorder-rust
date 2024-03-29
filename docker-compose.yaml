@@ -1,0 +1,21 @@
+services:
+  grafana:
+    image: grafana/grafana-enterprise
+    environment:
+      INFLUX_DB_TOKEN: 2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==
+    ports:
+      - 3000:3000
+    links:
+      - influx
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/influxdb.yml:/etc/grafana/provisioning/datasources/influxdb.yml
+  influx:
+    image: influxdb:2.7-alpine
+    ports:
+      - 8086:8086
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+volumes:
+  grafana-data: {}
+  influxdb-data: {}

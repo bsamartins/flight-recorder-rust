@@ -23,7 +23,7 @@ fn greet(name: &str) -> String {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sim_connect_client = SimConnect::new("Receiving data example");
-    let influx_client = Client::new("localhost:8086", "test", "token");
+    let influx_client = Client::new("http://localhost:8086", "test_org", "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==");
 
     match sim_connect_client {
         Ok(mut sim_connect_client) => {
@@ -79,16 +79,29 @@ async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::
 
     let points = vec![
         DataPoint::builder("flight")
-            .field("indicate_airspeed", data.airspeed_indicated)
+            .field("airspeed_indicated", data.airspeed_indicated)
             .build()?,
         DataPoint::builder("flight")
             .field("airspeed_true", data.airspeed_true)
             .build()?,
-        DataPoint::builder("flight").field("altitude", data.alt)
+        DataPoint::builder("flight")
+            .field("altitude", data.altitude)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("altitude_above_ground", data.altitude_above_ground)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("altitude_above_ground_minus_cg", data.altitude_above_ground_minus_cg)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("altitude_ground", data.altitude_ground)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("vertical_speed", data.vertical_speed)
             .build()?,
     ];
 
-    client.write("flight", stream::iter(points)).await?;
+    client.write("test_bucket", stream::iter(points)).await?;
 
     Ok(())
 }
@@ -106,11 +119,19 @@ struct AirplaneData {
     #[simconnect(name = "PLANE LONGITUDE", unit = "degrees")]
     lon: f64,
     #[simconnect(name = "PLANE ALTITUDE", unit = "feet")]
-    alt: f64,
+    altitude: f64,
+    #[simconnect(name = "PLANE ALT ABOVE GROUND", unit = "feet")]
+    altitude_above_ground: f64,
+    #[simconnect(name = "PLANE ALT ABOVE GROUND MINUS CG", unit = "feet")]
+    altitude_above_ground_minus_cg: f64,
+    #[simconnect(name = "GROUND ALTITUDE", unit = "feet")]
+    altitude_ground: f64,
     #[simconnect(name = "AIRSPEED INDICATED", unit = "knots")]
     airspeed_indicated: f64,
     #[simconnect(name = "AIRSPEED TRUE", unit = "knots")]
     airspeed_true: f64,
+    #[simconnect(name = "VERTICAL SPEED", unit = "feet per minute")]
+    vertical_speed: f64,
     #[simconnect(name = "SIM ON GROUND")]
     sim_on_ground: bool,
 }
