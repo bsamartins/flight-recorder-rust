@@ -1,7 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::task;
+use chrono::{DateTime, FixedOffset};
+use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject};
+use tokio::time::{sleep};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -16,48 +20,76 @@ fn greet(name: &str) -> String {
 //         .expect("error while running tauri application");
 // }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = SimConnect::new("Receiving data example");
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let sim_connect_client = SimConnect::new("Receiving data example");
+    let influx_client = Client::new("localhost:8086", "test", "token");
 
-    match client {
-        Ok(mut client) => {
+    match sim_connect_client {
+        Ok(mut sim_connect_client) => {
             let mut notifications_received = 0;
 
             loop {
-                let notification = client.get_next_dispatch()?;
+                let notification = sim_connect_client.get_next_dispatch()?;
 
                 match notification {
                     Some(Notification::Open) => {
                         println!("Connection opened.");
 
                         // After the connection is successfully open, we register the struct
-                        client.register_object::<AirplaneData>()?;
+                        sim_connect_client.register_object::<AirplaneData>()?;
                     }
                     Some(Notification::Object(data)) => {
                         if let Ok(airplane_data) = AirplaneData::try_from(&data) {
                             println!("{airplane_data:?}");
-
                             notifications_received += 1;
+                            let write_result = write(&influx_client, &airplane_data).await;
+                            match write_result {
+                                Err(err) => {
+                                    println!("Influx error: {err:?}");
+                                }
+                                _ => ()
+                            }
 
                             // After we have received 10 notifications, we unregister the struct
-                            if notifications_received > 10 {
-                                client.unregister_object::<AirplaneData>()?;
-                                println!("Subscription stopped.");
-                                break;
-                            }
+                            // if notifications_received > 10 {
+                            //     sim_connect_client.unregister_object::<AirplaneData>()?;
+                            //     println!("Subscription stopped.");
+                            //     break;
+                            // }
                         }
                     }
-                    _ => (),
+                    _ => ()
                 }
 
                 // sleep for about a frame to reduce CPU usage
-                std::thread::sleep(std::time::Duration::from_millis(16));
+                sleep(std::time::Duration::from_millis(16)).await;
             }
         }
         Err(e) => {
             println!("Error: {e:?}")
         }
     }
+    Ok(())
+}
+
+async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::error::Error>>  {
+    use futures::prelude::*;
+    use influxdb2::models::DataPoint;
+
+    let points = vec![
+        DataPoint::builder("flight")
+            .field("indicate_airspeed", data.airspeed_indicated)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("airspeed_true", data.airspeed_true)
+            .build()?,
+        DataPoint::builder("flight").field("altitude", data.alt)
+            .build()?,
+    ];
+
+    client.write("flight", stream::iter(points)).await?;
+
     Ok(())
 }
 
@@ -75,6 +107,17 @@ struct AirplaneData {
     lon: f64,
     #[simconnect(name = "PLANE ALTITUDE", unit = "feet")]
     alt: f64,
+    #[simconnect(name = "AIRSPEED INDICATED", unit = "knots")]
+    airspeed_indicated: f64,
+    #[simconnect(name = "AIRSPEED TRUE", unit = "knots")]
+    airspeed_true: f64,
     #[simconnect(name = "SIM ON GROUND")]
     sim_on_ground: bool,
+}
+
+#[derive(Debug, Default, FromDataPoint)]
+struct InfluxMetrics {
+    ticker: String,
+    value: f64,
+    time: DateTime<FixedOffset>,
 }
