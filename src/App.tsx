@@ -1,5 +1,9 @@
-import { useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import {useState} from "react";
+import {invoke} from "@tauri-apps/api/tauri";
+import {Box} from "@mui/joy";
+import SideBar from "./components/SideBar";
+import Header from "./components/Header.tsx";
+import MyMessages from "./components/MyMessages.tsx";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -11,28 +15,35 @@ function App() {
   }
 
   return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
+      <>
+          <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
+              <SideBar/>
+              <Header />
+              <Box component="main" className="MainContent" sx={{ flex: 1 }}>
+                  <MyMessages/>
+                  {/*<h1>Welcome to Tauri!</h1>*/}
 
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+                  {/*<p>Click on the Tauri, Vite, and React logos to learn more.</p>*/}
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
+                  {/*<form*/}
+                  {/*    className="row"*/}
+                  {/*    onSubmit={(e) => {*/}
+                  {/*        e.preventDefault();*/}
+                  {/*        greet();*/}
+                  {/*    }}*/}
+                  {/*>*/}
+                  {/*    <input*/}
+                  {/*        id="greet-input"*/}
+                  {/*        onChange={(e) => setName(e.currentTarget.value)}*/}
+                  {/*        placeholder="Enter a name..."*/}
+                  {/*    />*/}
+                  {/*    <button type="submit">Greet</button>*/}
+                  {/*</form>*/}
 
-      <p>{greetMsg}</p>
-    </div>
+                  {/*<p>{greetMsg}</p>*/}
+              </Box>
+          </Box>
+      </>
   );
 }
 
