@@ -16,6 +16,7 @@ fn main() {
         .manage(<FlightState  as Default>::default())
         .invoke_handler(tauri::generate_handler![
             cmd::list_flights,
+            cmd::create_flight,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
