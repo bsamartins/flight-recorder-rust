@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Box from '@mui/joy/Box';
-import ListDivider from '@mui/joy/ListDivider';
 import ListItem from '@mui/joy/ListItem';
 import ListItemButton, {ListItemButtonProps} from '@mui/joy/ListItemButton';
 import Stack from '@mui/joy/Stack';
@@ -20,7 +19,10 @@ export default function FlightListItem(props: FlightListItemProps) {
     const selected = selectedFlight?.id === flight.id;
     return (
         <React.Fragment>
-            <ListItem>
+            <ListItem sx={{
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                borderRadius: 30,
+            }} >
                 <ListItemButton
                     onClick={() => {
                         toggleMessagesPane();
@@ -36,20 +38,20 @@ export default function FlightListItem(props: FlightListItemProps) {
                 >
                     <Stack direction="row" spacing={1.5}>
                         <Box sx={{ flex: 1 }}>
+                            <Stack direction="column">
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography level="body-sm"><FlightTakeoffRounded/>{flight.departure}</Typography>
+                                    <Typography level="body-sm"><FlightLandRounded/>{flight.arrival}</Typography>
+                                </Box>
+                            </Stack>
                             <Box>
-                                <Typography level="body-sm"><FlightTakeoffRounded/> {flight.departure}</Typography>
-                            </Box>
-                            <Box>
-                                <Typography level="body-sm"><FlightLandRounded/> {flight.arrival}</Typography>
-                            </Box>
-                            <Box>
-                                <Typography level="body-sm">Aircraft: {flight.aircraft}</Typography>
+                                <Typography level="title-sm">Aircraft</Typography>
+                                <Typography level="body-sm">{flight.aircraft}</Typography>
                             </Box>
                         </Box>
                     </Stack>
                 </ListItemButton>
             </ListItem>
-            <ListDivider sx={{ margin: 0 }} />
         </React.Fragment>
     );
 }

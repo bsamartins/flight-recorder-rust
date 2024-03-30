@@ -55,6 +55,9 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     py: 0,
                     '--ListItem-paddingY': '0.75rem',
                     '--ListItem-paddingX': '1rem',
+                    'MuiListItem-root': {
+                        m: 10,
+                    },
                 }}
             >
                 {flights.map((flight) => (
