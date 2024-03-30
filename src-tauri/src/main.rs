@@ -1,11 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::task;
 use chrono::{DateTime, FixedOffset};
 use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject};
-use tokio::time::{sleep};
+use tokio::time::sleep;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -13,22 +12,20 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-// fn main() {
-//     tauri::Builder::default()
-//         .invoke_handler(tauri::generate_handler![greet])
-//         .run(tauri::generate_context!())
-//         .expect("error while running tauri application");
-// }
+fn main() {
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![greet])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main_x() -> Result<(), Box<dyn std::error::Error>> {
     let sim_connect_client = SimConnect::new("Receiving data example");
     let influx_client = Client::new("http://localhost:8086", "test_org", "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==");
 
     match sim_connect_client {
         Ok(mut sim_connect_client) => {
-            let mut notifications_received = 0;
-
             loop {
                 let notification = sim_connect_client.get_next_dispatch()?;
 
@@ -42,7 +39,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Some(Notification::Object(data)) => {
                         if let Ok(airplane_data) = AirplaneData::try_from(&data) {
                             println!("{airplane_data:?}");
-                            notifications_received += 1;
                             let write_result = write(&influx_client, &airplane_data).await;
                             match write_result {
                                 Err(err) => {
