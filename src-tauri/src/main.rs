@@ -99,6 +99,18 @@ async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::
         DataPoint::builder("flight")
             .field("vertical_speed", data.vertical_speed)
             .build()?,
+        DataPoint::builder("flight")
+            .field("ground_velocity", data.ground_velocity)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("fuel_total_capacity", data.fuel_total_capacity)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("fuel_total_quantity", data.fuel_total_quantity)
+            .build()?,
+        DataPoint::builder("flight")
+            .field("fuel_total_quantity_weight", data.fuel_total_quantity_weight)
+            .build()?,
     ];
 
     client.write("test_bucket", stream::iter(points)).await?;
@@ -130,8 +142,16 @@ struct AirplaneData {
     airspeed_indicated: f64,
     #[simconnect(name = "AIRSPEED TRUE", unit = "knots")]
     airspeed_true: f64,
+    #[simconnect(name = "GROUND VELOCITY", unit = "knots")]
+    ground_velocity: f64,
     #[simconnect(name = "VERTICAL SPEED", unit = "feet per minute")]
     vertical_speed: f64,
+    #[simconnect(name = "FUEL TOTAL CAPACITY", unit = "gallons")]
+    fuel_total_capacity: f64,
+    #[simconnect(name = "FUEL TOTAL QUANTITY", unit = "gallons")]
+    fuel_total_quantity: f64,
+    #[simconnect(name = "FUEL TOTAL QUANTITY WEIGHT", unit = "kilos")]
+    fuel_total_quantity_weight: f64,
     #[simconnect(name = "SIM ON GROUND")]
     sim_on_ground: bool,
 }
