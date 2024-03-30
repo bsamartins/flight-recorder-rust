@@ -42,6 +42,7 @@ pub struct AirplaneData {
     pub sim_on_ground: bool,
 }
 
+#[allow(dead_code)]
 #[tokio::main]
 async fn test() -> Result<(), Box<dyn Error>> {
     let sim_connect_client = SimConnect::new("Receiving data example");
@@ -92,6 +93,7 @@ async fn test() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[allow(dead_code)]
 async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::error::Error>>  {
     use futures::prelude::*;
     use influxdb2::models::DataPoint;
