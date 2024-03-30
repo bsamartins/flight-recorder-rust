@@ -6,7 +6,7 @@ import ChatsPane from './ChatsPane';
 import { ChatProps } from '../types';
 import { chats } from '../data';
 
-export default function MyProfile() {
+export default function MyFlights() {
     const [selectedChat, setSelectedChat] = React.useState<ChatProps>(chats[0]);
     return (
         <Sheet

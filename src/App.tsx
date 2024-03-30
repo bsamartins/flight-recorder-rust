@@ -3,7 +3,7 @@ import {invoke} from "@tauri-apps/api/tauri";
 import {Box} from "@mui/joy";
 import SideBar from "./components/SideBar";
 import Header from "./components/Header.tsx";
-import MyMessages from "./components/MyMessages.tsx";
+import MyFlights from "./components/MyFlights.tsx";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -20,7 +20,7 @@ function App() {
               <SideBar/>
               <Header />
               <Box component="main" className="MainContent" sx={{ flex: 1 }}>
-                  <MyMessages/>
+                  <MyFlights/>
                   {/*<h1>Welcome to Tauri!</h1>*/}
 
                   {/*<p>Click on the Tauri, Vite, and React logos to learn more.</p>*/}
