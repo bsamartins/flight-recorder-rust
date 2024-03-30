@@ -1,9 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::error::Error;
 use chrono::{DateTime, FixedOffset};
 use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject};
+use tauri::api::path::app_data_dir;
 use tokio::time::sleep;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -14,13 +16,20 @@ fn greet(name: &str) -> String {
 
 fn main() {
     tauri::Builder::default()
+        .setup(setup)
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
+fn setup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
+    println!("{}", app.path_resolver().app_data_dir().unwrap().to_string_lossy());
+    println!("{}", app.path_resolver().app_local_data_dir().unwrap().to_string_lossy());
+    Ok(())
+}
+
 #[tokio::main]
-async fn main_x() -> Result<(), Box<dyn std::error::Error>> {
+async fn main_x() -> Result<(), Box<dyn Error>> {
     let sim_connect_client = SimConnect::new("Receiving data example");
     let influx_client = Client::new("http://localhost:8086", "test_org", "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==");
 
