@@ -1,18 +1,16 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import Sheet from '@mui/joy/Sheet';
-
-import MessagesPane from './MessagesPane';
-import ChatsPane from './ChatsPane';
-import { ChatProps } from '../types';
-import { chats } from '../data';
-import {useEffect} from "react";
+import FlightsPane from './FlightsPane.tsx';
 import {listFlights} from "../commands";
+import {Flight} from "../bindings/Flight.ts";
 
 export default function MyFlights() {
-    const [selectedChat, setSelectedChat] = React.useState<ChatProps>(chats[0]);
+    const [selectedFlight, setSelectedFlight] = React.useState<Flight | null>(null);
+    const [flights, setFlights] = useState<Flight[]>([]);
     useEffect(() => {
         listFlights()
-            .then(res => console.log(res))
+            .then(res => setFlights(res))
             .catch(err => console.error(err));
     }, []);
     return (
@@ -42,13 +40,13 @@ export default function MyFlights() {
                     top: 52,
                 }}
             >
-                <ChatsPane
-                    chats={chats}
-                    selectedChatId={selectedChat.id}
-                    setSelectedChat={setSelectedChat}
+                <FlightsPane
+                    flights={flights}
+                    setSelectedFlight={flight => setSelectedFlight(flight)}
+                    selectedFlight={selectedFlight}
                 />
             </Sheet>
-            <MessagesPane chat={selectedChat} />
+            {/*<MessagesPane chat={selectedChat} />*/}
         </Sheet>
     );
 }
