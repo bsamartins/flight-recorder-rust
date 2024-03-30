@@ -58,10 +58,22 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     py: 0,
                     '--ListItem-paddingY': '0.75rem',
                     '--ListItem-paddingX': '1rem',
-                    '& > .MuiListItem-root': {
-                        '&:not(:last-child)': {
-                            mb: 1.5,
-                        }
+                     '& .MuiListItem-root:not(:last-child)': {
+                        mb: 1.5,
+                    },
+                    '& .MuiListItemButton-root.Mui-selected': {
+                        backgroundColor: 'unset',
+                    },
+                    '& .MuiListItemButton-root:hover': {
+                        backgroundColor: 'unset',
+                    },
+                    '& .MuiListItem-root': {
+                        '&:hover': {
+                            borderColor: (theme) => theme.palette.primary.softColor,
+                        },
+                        '&:has(.Mui-selected)': {
+                            borderColor: (theme) => theme.palette.primary.solidColor,
+                        },
                     },
                 }}
             >
