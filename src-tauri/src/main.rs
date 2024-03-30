@@ -2,14 +2,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::error::Error;
+use crate::state::FlightState;
 
 mod cmd;
+mod state;
+mod model;
 mod flight_instrumentation;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 fn main() {
     tauri::Builder::default()
         .setup(setup)
+        .manage(<FlightState  as Default>::default())
         .invoke_handler(tauri::generate_handler![
             cmd::list_flights,
         ])

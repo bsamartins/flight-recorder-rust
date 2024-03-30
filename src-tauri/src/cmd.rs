@@ -1,30 +1,9 @@
-use serde::Serialize;
-use ts_rs::TS;
+use futures::StreamExt;
+use crate::model::Flight;
+use crate::state::FlightState;
+use tauri::State;
 
 #[tauri::command]
-pub fn list_flights() -> Vec<Flight> {
-    return Vec::from([
-        Flight {
-            id: "1".to_string() ,
-            departure: Some("LPPT".to_string()),
-            arrival: Some("LPPR".to_string()),
-            aircraft: "Fenix".to_string(),
-        },
-        Flight {
-            id: "2".to_string() ,
-            departure: Some("LPPR".to_string()),
-            arrival: Some("LPFR".to_string()),
-            aircraft: "Fenix".to_string(),
-        },
-    ]);
-}
-
-#[derive(Serialize, TS, PartialEq, Eq, Hash)]
-#[ts(export, export_to = "../../src/bindings/", rename_all = "camelCase")]
-#[serde(rename_all = "camelCase")]
-pub struct Flight {
-    id: String,
-    departure: Option<String>,
-    arrival: Option<String>,
-    aircraft: String,
+pub fn list_flights(flight_state: State<FlightState>) -> Vec<Flight> {
+    return  <Vec<Flight> as Clone>::clone(&flight_state.flights);
 }
