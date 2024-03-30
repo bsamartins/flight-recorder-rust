@@ -2,16 +2,20 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::error::Error;
+
 use chrono::{DateTime, FixedOffset};
 use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject};
-use tauri::api::path::app_data_dir;
 use tokio::time::sleep;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+#[tauri::command]
+fn start_flight() {
 }
 
 fn main() {
