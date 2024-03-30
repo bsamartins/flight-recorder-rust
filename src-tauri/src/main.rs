@@ -150,7 +150,7 @@ struct AirplaneData {
     fuel_total_capacity: f64,
     #[simconnect(name = "FUEL TOTAL QUANTITY", unit = "gallons")]
     fuel_total_quantity: f64,
-    #[simconnect(name = "FUEL TOTAL QUANTITY WEIGHT", unit = "kilos")]
+    #[simconnect(name = "FUEL TOTAL QUANTITY WEIGHT", unit = "pounds")]
     fuel_total_quantity_weight: f64,
     #[simconnect(name = "SIM ON GROUND")]
     sim_on_ground: bool,
