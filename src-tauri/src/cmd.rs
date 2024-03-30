@@ -1,5 +1,4 @@
 use serde::Serialize;
-use serde_json::to_string;
 use ts_rs::TS;
 
 #[tauri::command]
