@@ -25,6 +25,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
                 borderColor: 'divider',
                 height: 'calc(100dvh - var(--Header-height))',
                 overflowY: 'auto',
+                px: 2,
             }}
         >
             <Stack
@@ -32,7 +33,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
                 spacing={1}
                 alignItems="center"
                 justifyContent="space-between"
-                p={2}
+                pt={2}
                 pb={1.5}
             >
                 <Typography
@@ -44,7 +45,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     Flights
                 </Typography>
             </Stack>
-            <Box sx={{ px: 2, pb: 1.5 }}>
+            <Box sx={{ pb: 1.5 }}>
                 <Input
                     size="sm"
                     startDecorator={<SearchRoundedIcon />}
@@ -57,8 +58,10 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     py: 0,
                     '--ListItem-paddingY': '0.75rem',
                     '--ListItem-paddingX': '1rem',
-                    'MuiListItem-root': {
-                        m: 10,
+                    '& > .MuiListItem-root': {
+                        '&:not(:last-child)': {
+                            mb: 1.5,
+                        }
                     },
                 }}
             >
@@ -71,7 +74,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     />
                 ))}
             </List>
-            <Button onClick={ _ => createFlight()}>Create Flight</Button>
+            <Button sx={{ mt: 1.5 }} onClick={ _ => createFlight()}>Create Flight</Button>
         </Sheet>
     );
 }
