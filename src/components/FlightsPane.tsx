@@ -7,6 +7,8 @@ import List from '@mui/joy/List';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import FlightListItem from './FlightListItem.tsx';
 import {Flight} from "../bindings/Flight.ts";
+import Button from "@mui/joy/Button";
+import {createFlight} from "../commands";
 
 type FlightsPaneProps = {
     flights: Flight[];
@@ -69,6 +71,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     />
                 ))}
             </List>
+            <Button onClick={ _ => createFlight()}>Create Flight</Button>
         </Sheet>
     );
 }

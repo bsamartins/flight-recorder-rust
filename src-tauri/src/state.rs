@@ -1,5 +1,6 @@
-use crate::model::Flight;
 use std::sync::Mutex;
+
+use crate::model::Flight;
 
 #[derive(Default)]
 pub struct FlightState {
@@ -7,7 +8,7 @@ pub struct FlightState {
 }
 
 impl FlightState {
-    pub fn add_flight(self, flight: Flight) {
+    pub fn add_flight(&self, flight: Flight) {
         self.flights.lock().unwrap().push(flight);
     }
 }

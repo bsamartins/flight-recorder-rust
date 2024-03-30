@@ -8,3 +8,7 @@ export async function greet(name: string): Promise<string> {
 export async function listFlights(): Promise<Flight[]> {
     return await invoke("list_flights")
 }
+
+export async function createFlight(): Promise<void> {
+    return await invoke("create_flight")
+}
