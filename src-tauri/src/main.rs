@@ -8,20 +8,13 @@ use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject};
 use tokio::time::sleep;
 
+mod cmd;
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
-fn start_flight() {
-}
-
 fn main() {
     tauri::Builder::default()
         .setup(setup)
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![cmd::greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -47,10 +40,10 @@ async fn main_x() -> Result<(), Box<dyn Error>> {
                         println!("Connection opened.");
 
                         // After the connection is successfully open, we register the struct
-                        sim_connect_client.register_object::<AirplaneData>()?;
+                        sim_connect_client.register_object::<cmd::AirplaneData>()?;
                     }
                     Some(Notification::Object(data)) => {
-                        if let Ok(airplane_data) = AirplaneData::try_from(&data) {
+                        if let Ok(airplane_data) = cmd::AirplaneData::try_from(&data) {
                             println!("{airplane_data:?}");
                             let write_result = write(&influx_client, &airplane_data).await;
                             match write_result {
@@ -82,7 +75,7 @@ async fn main_x() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::error::Error>>  {
+async fn write(client: &Client, data: &cmd::AirplaneData) -> Result<(), Box<dyn std::error::Error>>  {
     use futures::prelude::*;
     use influxdb2::models::DataPoint;
 
@@ -127,47 +120,15 @@ async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::
     Ok(())
 }
 
-#[derive(Debug, Clone, SimConnectObject)]
-#[simconnect(period = "second")]
-#[allow(dead_code)]
-struct AirplaneData {
-    #[simconnect(name = "TITLE")]
-    title: String,
-    #[simconnect(name = "CATEGORY")]
-    category: String,
-    #[simconnect(name = "PLANE LATITUDE", unit = "degrees")]
-    lat: f64,
-    #[simconnect(name = "PLANE LONGITUDE", unit = "degrees")]
-    lon: f64,
-    #[simconnect(name = "PLANE ALTITUDE", unit = "feet")]
-    altitude: f64,
-    #[simconnect(name = "PLANE ALT ABOVE GROUND", unit = "feet")]
-    altitude_above_ground: f64,
-    #[simconnect(name = "PLANE ALT ABOVE GROUND MINUS CG", unit = "feet")]
-    altitude_above_ground_minus_cg: f64,
-    #[simconnect(name = "GROUND ALTITUDE", unit = "feet")]
-    altitude_ground: f64,
-    #[simconnect(name = "AIRSPEED INDICATED", unit = "knots")]
-    airspeed_indicated: f64,
-    #[simconnect(name = "AIRSPEED TRUE", unit = "knots")]
-    airspeed_true: f64,
-    #[simconnect(name = "GROUND VELOCITY", unit = "knots")]
-    ground_velocity: f64,
-    #[simconnect(name = "VERTICAL SPEED", unit = "feet per minute")]
-    vertical_speed: f64,
-    #[simconnect(name = "FUEL TOTAL CAPACITY", unit = "gallons")]
-    fuel_total_capacity: f64,
-    #[simconnect(name = "FUEL TOTAL QUANTITY", unit = "gallons")]
-    fuel_total_quantity: f64,
-    #[simconnect(name = "FUEL TOTAL QUANTITY WEIGHT", unit = "pounds")]
-    fuel_total_quantity_weight: f64,
-    #[simconnect(name = "SIM ON GROUND")]
-    sim_on_ground: bool,
-}
-
 #[derive(Debug, Default, FromDataPoint)]
 struct InfluxMetrics {
     ticker: String,
     value: f64,
     time: DateTime<FixedOffset>,
+}
+
+struct Flight {
+    departure: String,
+    arrival: String,
+    aircraft: String
 }
