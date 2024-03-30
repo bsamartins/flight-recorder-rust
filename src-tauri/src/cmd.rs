@@ -7,15 +7,15 @@ pub fn list_flights() -> Vec<Flight> {
     return Vec::from([
         Flight {
             id: "1".to_string() ,
-            departure: "LPPT".to_string(),
-            arrival: "LPPR".to_string(),
-            aircraft: "Fenix".to_string()
+            departure: Some("LPPT".to_string()),
+            arrival: Some("LPPR".to_string()),
+            aircraft: "Fenix".to_string(),
         },
         Flight {
             id: "2".to_string() ,
-            departure: "LPPR".to_string(),
-            arrival: "LPFR".to_string(),
-            aircraft: "Fenix".to_string()
+            departure: Some("LPPR".to_string()),
+            arrival: Some("LPFR".to_string()),
+            aircraft: "Fenix".to_string(),
         },
     ]);
 }
@@ -25,7 +25,7 @@ pub fn list_flights() -> Vec<Flight> {
 #[serde(rename_all = "camelCase")]
 pub struct Flight {
     id: String,
-    departure: String,
-    arrival: String,
-    aircraft: String
+    departure: Option<String>,
+    arrival: Option<String>,
+    aircraft: String,
 }
