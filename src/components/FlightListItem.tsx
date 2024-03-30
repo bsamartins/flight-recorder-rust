@@ -7,6 +7,7 @@ import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import {toggleMessagesPane} from '../utils';
 import {Flight} from "../bindings/Flight.ts";
+import {FlightLandRounded, FlightTakeoffRounded} from "@mui/icons-material";
 
 type FlightListItemProps = ListItemButtonProps & {
     flight: Flight;
@@ -35,9 +36,15 @@ export default function FlightListItem(props: FlightListItemProps) {
                 >
                     <Stack direction="row" spacing={1.5}>
                         <Box sx={{ flex: 1 }}>
-                            <Typography level="title-sm">Departure: {flight.departure}</Typography>
-                            <Typography level="title-sm">Arrival:  {flight.arrival}</Typography>
-                            <Typography level="title-sm">Aircraft:  {flight.aircraft}</Typography>
+                            <Box>
+                                <Typography level="body-sm"><FlightTakeoffRounded/> {flight.departure}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography level="body-sm"><FlightLandRounded/> {flight.arrival}</Typography>
+                            </Box>
+                            <Box>
+                                <Typography level="body-sm">Aircraft: {flight.aircraft}</Typography>
+                            </Box>
                         </Box>
                     </Stack>
                 </ListItemButton>

@@ -4,7 +4,6 @@ import Sheet from '@mui/joy/Sheet';
 import Stack from '@mui/joy/Stack';
 import AvatarWithStatus from './AvatarWithStatus';
 import ChatBubble from './ChatBubble';
-import MessageInput from './MessageInput';
 import MessagesPaneHeader from './MessagesPaneHeader';
 import { ChatProps, MessageProps } from '../types';
 
@@ -15,7 +14,6 @@ type MessagesPaneProps = {
 export default function MessagesPane(props: MessagesPaneProps) {
     const { chat } = props;
     const [chatMessages, setChatMessages] = React.useState(chat.messages);
-    const [textAreaValue, setTextAreaValue] = React.useState('');
 
     React.useEffect(() => {
         setChatMessages(chat.messages);
@@ -64,23 +62,6 @@ export default function MessagesPane(props: MessagesPaneProps) {
                     })}
                 </Stack>
             </Box>
-            <MessageInput
-                textAreaValue={textAreaValue}
-                setTextAreaValue={setTextAreaValue}
-                onSubmit={() => {
-                    const newId = chatMessages.length + 1;
-                    const newIdString = newId.toString();
-                    setChatMessages([
-                        ...chatMessages,
-                        {
-                            id: newIdString,
-                            sender: 'You',
-                            content: textAreaValue,
-                            timestamp: 'Just now',
-                        },
-                    ]);
-                }}
-            />
         </Sheet>
     );
 }
