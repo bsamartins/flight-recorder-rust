@@ -11,7 +11,6 @@ fn main() {
     tauri::Builder::default()
         .setup(setup)
         .invoke_handler(tauri::generate_handler![
-            cmd::greet,
             cmd::list_flights,
         ])
         .run(tauri::generate_context!())

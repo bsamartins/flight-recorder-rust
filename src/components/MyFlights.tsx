@@ -5,9 +5,16 @@ import MessagesPane from './MessagesPane';
 import ChatsPane from './ChatsPane';
 import { ChatProps } from '../types';
 import { chats } from '../data';
+import {useEffect} from "react";
+import {listFlights} from "../commands";
 
 export default function MyFlights() {
     const [selectedChat, setSelectedChat] = React.useState<ChatProps>(chats[0]);
+    useEffect(() => {
+        listFlights()
+            .then(res => console.log(res))
+            .catch(err => console.error(err));
+    }, []);
     return (
         <Sheet
             sx={{
