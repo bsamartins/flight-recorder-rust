@@ -10,3 +10,17 @@ pub struct Flight {
     pub arrival: Option<String>,
     pub aircraft: String,
 }
+
+#[derive(Serialize, TS, PartialEq, Eq, Hash, Clone)]
+#[ts(export, export_to = "../../src/bindings/", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ErrorModel {
+    pub code: i32,
+    pub message: String,
+}
+
+impl ErrorModel {
+    pub fn new(code: i32, message: String) -> ErrorModel {
+        return ErrorModel { code: code, message: message };
+    }
+}

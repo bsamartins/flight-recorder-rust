@@ -1,6 +1,6 @@
 
-use sea_orm::{ActiveModelTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel};
-use crate::database::entities::{flights::Model as FlightEntity, prelude::Flights};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter};
+use crate::database::entities::{flights::Model as FlightEntity, flights::Column as FlightColumns, prelude::Flights};
 
 pub struct FlightRepository {}
 
@@ -16,6 +16,16 @@ impl FlightRepository {
         .all(db)
         .await?;
         return Ok(flights);
+    }
+    
+    pub async fn flight_in_progress(db: &DatabaseConnection) -> Result<bool, DbErr> {
+        let result = Flights::find()
+            .filter(FlightColumns::EndTimestamp.is_null())    
+            .one(db)        
+            .await?
+            .map(|_| true)
+            .unwrap_or(false);
+        Ok(result)
     }
 
 }

@@ -1,6 +1,4 @@
-use std::borrow::Borrow;
-
-use crate::model::Flight;
+use crate::model::{ErrorModel, Flight};
 use crate::repositories::flight_repository::FlightRepository;
 use chrono::Utc;
 use futures::TryFutureExt;
@@ -10,9 +8,12 @@ use tauri::State;
 use crate::database::entities::flights::Model as FlightEntity;
 
 #[tauri::command]
-pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Flight, String> {
+pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Flight, ErrorModel> {
+    if FlightRepository::flight_in_progress(&db_connection).map_err(map_db_error).await? {
+        return Err(ErrorModel::new(-1, "Flight in progress".to_string()));
+    }
     let flight = FlightRepository::save(
-        db_connection.borrow(),
+        &db_connection,
         FlightEntity {
             id: Uuid::new_v4().to_string(),
             departure: Option::None,
@@ -28,7 +29,7 @@ pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> 
 }
 
 #[tauri::command]
-pub async fn list_flights<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Vec<Flight>, String> {
+pub async fn list_flights<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Vec<Flight>, ErrorModel> {
     let flights = FlightRepository::find_all(&db_connection)
     .map_err(map_db_error)
     .await?;
@@ -48,7 +49,7 @@ impl FlightEntity {
     }
 }
 
-fn map_db_error(db_err: DbErr) -> String {
+fn map_db_error(db_err: DbErr) -> ErrorModel {
     tracing::error!("Request failure: {}", db_err);
-    return db_err.to_string()
+    return ErrorModel::new(-1, db_err.to_string());
 }
