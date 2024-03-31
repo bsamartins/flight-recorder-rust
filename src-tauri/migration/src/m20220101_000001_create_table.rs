@@ -9,17 +9,18 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Post::Table)
+                    .table(Flights::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Post::Id)
-                            .integer()
+                        ColumnDef::new(Flights::Id)
+                            .string()
+                            .uuid()
                             .not_null()
-                            .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Post::Title).string().not_null())
-                    .col(ColumnDef::new(Post::Text).string().not_null())
+                    .col(ColumnDef::new(Flights::Departure).string().not_null())
+                    .col(ColumnDef::new(Flights::Arrival).string().not_null())
+                    .col(ColumnDef::new(Flights::Aircraft).string().not_null())
                     .to_owned(),
             )
             .await
@@ -27,15 +28,16 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Post::Table).to_owned())
+            .drop_table(Table::drop().table(Flights::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Post {
+enum Flights {
     Table,
     Id,
-    Title,
-    Text,
+    Departure,
+    Arrival,
+    Aircraft
 }
