@@ -9,15 +9,19 @@ import FlightListItem from './FlightListItem.tsx';
 import {Flight} from "../bindings/Flight.ts";
 import Button from "@mui/joy/Button";
 import {createFlight} from "../commands";
+import {useListFlights} from "../state/flights.ts";
 
 type FlightsPaneProps = {
     flights: Flight[];
-    setSelectedFlight: (flight: Flight) => void;
-    selectedFlight?: Flight | null;
 };
 
 export default function FlightsPane(props: FlightsPaneProps) {
-    const { flights, setSelectedFlight, selectedFlight } = props;
+    const { flights} = props;
+    const { refetch: refetchFlights } = useListFlights();
+    const onCreateFlight = async () => {
+        await createFlight();
+        await refetchFlights();
+    }
     return (
         <Sheet
             sx={{
@@ -81,12 +85,10 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     <FlightListItem
                         key={flight.id}
                         flight={flight}
-                        setSelectedFlight={setSelectedFlight}
-                        selectedFlight={selectedFlight}
                     />
                 ))}
             </List>
-            <Button sx={{ mt: 1.5 }} onClick={ _ => createFlight()}>Create Flight</Button>
+            <Button sx={{ mt: 1.5 }} onClick={ _ => onCreateFlight()}>Create Flight</Button>
         </Sheet>
     );
 }

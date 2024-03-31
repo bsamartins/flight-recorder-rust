@@ -1,18 +1,10 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
 import Sheet from '@mui/joy/Sheet';
 import FlightsPane from './FlightsPane.tsx';
-import {listFlights} from "../commands";
-import {Flight} from "../bindings/Flight.ts";
+import {useListFlights} from "../state/flights.ts";
 
 export default function MyFlights() {
-    const [selectedFlight, setSelectedFlight] = React.useState<Flight | null>(null);
-    const [flights, setFlights] = useState<Flight[]>([]);
-    useEffect(() => {
-        listFlights()
-            .then(res => setFlights(res))
-            .catch(err => console.error(err));
-    }, []);
+    const { data: flights = [] } = useListFlights();
     return (
         <Sheet
             sx={{
@@ -40,13 +32,8 @@ export default function MyFlights() {
                     top: 52,
                 }}
             >
-                <FlightsPane
-                    flights={flights}
-                    setSelectedFlight={flight => setSelectedFlight(flight)}
-                    selectedFlight={selectedFlight}
-                />
+                <FlightsPane flights={flights} />
             </Sheet>
-            {/*<MessagesPane chat={selectedChat} />*/}
         </Sheet>
     );
 }

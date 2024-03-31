@@ -7,15 +7,15 @@ import Typography from '@mui/joy/Typography';
 import {toggleMessagesPane} from '../utils';
 import {Flight} from "../bindings/Flight.ts";
 import {FlightLandRounded, FlightTakeoffRounded} from "@mui/icons-material";
+import {useSelectedFlight} from "../state/flights.ts";
 
 type FlightListItemProps = ListItemButtonProps & {
     flight: Flight;
-    selectedFlight?: Flight | null;
-    setSelectedFlight: (flight: Flight) => void;
 };
 
 export default function FlightListItem(props: FlightListItemProps) {
-    const { flight, selectedFlight, setSelectedFlight } = props;
+    const [selectedFlight, setSelectedFlight] = useSelectedFlight();
+    const { flight} = props;
     const selected = selectedFlight?.id === flight.id;
     return (
         <React.Fragment>
