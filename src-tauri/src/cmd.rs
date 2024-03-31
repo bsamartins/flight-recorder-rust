@@ -2,7 +2,6 @@ use std::borrow::Borrow;
 
 use crate::model::Flight;
 use crate::repositories::flight_repository::FlightRepository;
-use crate::state::FlightState;
 use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
 use sea_orm::DatabaseConnection;
@@ -22,15 +21,26 @@ pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> 
     )
     .map_err(|err| err.to_string())
     .await?;
-    Ok(Flight { 
-        id: flight.id, 
-        departure: Some(flight.departure), 
-        arrival: Some(flight.arrival), 
-        aircraft: flight.aircraft, 
-    })
+    Ok(flight.to_model())
 }
 
 #[tauri::command]
-pub fn list_flights(flight_state: State<FlightState>) -> Vec<Flight> {
-    return <Vec<Flight> as Clone>::clone(&flight_state.flights.lock().unwrap());
+pub async fn list_flights<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Vec<Flight>, String> {
+    let flights = FlightRepository::find_all(&db_connection)
+    .map_err(|err| err.to_string())
+    .await?;
+    return Ok(flights.into_iter()
+        .map(|flight| flight.to_model())
+        .collect())
+}
+
+impl FlightEntity {
+    fn to_model(&self) -> Flight {
+        return Flight { 
+            id: self.id.to_string(), 
+            departure: Some(self.departure.to_string()), 
+            arrival: Some(self.arrival.to_string()), 
+            aircraft: self.aircraft.to_string(), 
+        }
+    }
 }

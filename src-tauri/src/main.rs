@@ -16,7 +16,7 @@ mod repositories;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {    
+async fn main() -> Result<(), Box<dyn Error>> {
     tauri::Builder::default()
         .setup(setup)
         .manage(<FlightState as Default>::default())
@@ -31,19 +31,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 fn setup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt().init();
-    println!("{}", app.path_resolver().app_data_dir().unwrap().to_string_lossy());
-    println!("{}", app.path_resolver().app_local_data_dir().unwrap().to_string_lossy());
     let app_handle = app.app_handle();
     tauri::async_runtime::spawn(async move {
-        let database = format!("{}/data.sqlite", app_handle.path_resolver().app_local_data_dir().unwrap().to_string_lossy());
-        let db_result = database::initialize(&database).await;
+        let database_path = app_handle.path_resolver().app_local_data_dir().unwrap()
+            .join("data.sqlite")
+            .display()
+            .to_string();
+        let db_result = database::initialize(&database_path).await;
         match db_result {
             Ok(db) => {
                 app_handle.manage(db);
             }
             Err(e) => {
                 tracing::error!("Failed to initalize database: {}", e);
-            }            
+            }
         }
     });
     Ok(())
