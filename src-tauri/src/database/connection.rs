@@ -1,7 +1,7 @@
 use sea_orm::Database;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
-use migration::{Migrator, MigratorTrait};
+use super::migrations::{Migrator, MigratorTrait};
 
 pub async fn initialize(database: &str) -> Result<DatabaseConnection, DbErr> {
     println!("Initializing database: {}", database);
