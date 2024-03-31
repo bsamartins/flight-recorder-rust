@@ -1,9 +1,12 @@
-use std::borrow::Borrow;
-
+use sea_orm::prelude::Uuid;
 use sea_orm::Database;
 use sea_orm::DbErr;
-use sea_orm::entity::prelude::*;
 use migration::{Migrator, MigratorTrait};
+use sea_orm::EntityTrait;
+use sea_orm::Set;
+use crate::entities::flights::ActiveModel as FlightModel;
+
+use super::entities::prelude::*;
 
 pub async fn init() -> Result<(), DbErr> {
     println!("Initalizing database");
@@ -16,20 +19,13 @@ pub async fn init() -> Result<(), DbErr> {
     Migrator::status(&db).await?;
     println!("Migration status executed");
 
+    let flight = Flights::insert(FlightModel {
+        id: Set(Uuid::new_v4().to_string()),
+        departure: Set("LPPT".to_string()), 
+        arrival: Set("LPPR".to_string()),
+        aircraft: Set("Fenix A320".to_string())
+    }).exec(&db)
+    .await?;
+
     Ok(())
 }
-
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
-#[sea_orm(table_name = "flights")]
-pub struct Model {
-    #[sea_orm(primary_key)]
-    pub id: i32,
-    pub departure: String,
-    pub arrival: String,
-    pub aircraft: String,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
-
-impl ActiveModelBehavior for ActiveModel {}
