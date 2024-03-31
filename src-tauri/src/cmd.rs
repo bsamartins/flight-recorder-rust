@@ -6,7 +6,7 @@ use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
 use sea_orm::DatabaseConnection;
 use tauri::State;
-use crate::entities::flights::Model as FlightEntity;
+use crate::database::entities::flights::Model as FlightEntity;
 
 #[tauri::command]
 pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Flight, String> {

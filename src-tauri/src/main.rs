@@ -11,7 +11,6 @@ mod state;
 mod model;
 mod flight_instrumentation;
 mod database;
-mod entities;
 mod repositories;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -37,7 +36,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
             .join("data.sqlite")
             .display()
             .to_string();
-        let db_result = database::initialize(&database_path).await;
+        let db_result = database::connection::initialize(&database_path).await;
         match db_result {
             Ok(db) => {
                 app_handle.manage(db);

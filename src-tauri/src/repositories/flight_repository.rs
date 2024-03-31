@@ -1,6 +1,6 @@
 
 use sea_orm::{ActiveModelTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel};
-use crate::entities::{flights::Model as FlightEntity, prelude::Flights};
+use crate::database::entities::{flights::Model as FlightEntity, prelude::Flights};
 
 pub struct FlightRepository {}
 
