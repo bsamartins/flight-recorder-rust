@@ -3,7 +3,7 @@
 
 use std::error::Error;
 use crate::state::FlightState;
-use tracing_subscriber::{filter, prelude::*};
+use tracing_subscriber;
 
 mod cmd;
 mod state;
