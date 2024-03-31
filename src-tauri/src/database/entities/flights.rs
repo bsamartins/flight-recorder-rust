@@ -10,7 +10,7 @@ pub struct Model {
     pub id: String,
     pub departure: Option<String>,
     pub arrival: Option<String>,
-    pub aircraft: String,
+    pub aircraft: Option<String>,
     pub start_timestamp: chrono::DateTime<Utc>,
     pub end_timestamp: Option<chrono::DateTime<Utc>>,
 }

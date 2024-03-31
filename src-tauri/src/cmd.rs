@@ -18,7 +18,7 @@ pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> 
             id: Uuid::new_v4().to_string(),
             departure: Option::None,
             arrival: Option::None,
-            aircraft: "Fenix A320".to_string(),
+            aircraft: Option::None,
             start_timestamp: Utc::now(),
             end_timestamp: Option::None
         }
@@ -44,7 +44,7 @@ impl FlightEntity {
             id: self.id.to_string(),
             departure: self.departure.clone(),
             arrival: self.arrival.clone(),
-            aircraft: self.aircraft.to_string(),
+            aircraft: self.aircraft.clone(),
         }
     }
 }
