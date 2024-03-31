@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "migration"]
+
 [package]
 name = "flight-recorder-rust"
 version = "0.0.0"
@@ -23,7 +26,12 @@ tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros"] }
 chrono = "0.4.37"
 num-traits = "0.2.18"
 influxdb2-structmap = "0.2.0"
+sea-orm = { version = "0.12.15", features = ["sqlx-sqlite", "runtime-tokio-native-tls", "macros"] }
 ts-rs = "8.1.0"
+sea-orm-migration = "0.12.15"
+migration = { path = "migration" }
+tracing-subscriber = "0.3.18"
+tracing = { version = "0.1.40", features = ["log", "log-always"] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

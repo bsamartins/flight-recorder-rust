@@ -3,14 +3,19 @@
 
 use std::error::Error;
 use crate::state::FlightState;
+use tracing_subscriber::{filter, prelude::*};
 
 mod cmd;
 mod state;
 mod model;
 mod flight_instrumentation;
+mod database;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    tracing_subscriber::fmt().init();
+    database::init().await?;
     tauri::Builder::default()
         .setup(setup)
         .manage(<FlightState  as Default>::default())
@@ -20,9 +25,10 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+    Ok(())
 }
 
-fn setup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {
+fn setup(app: &mut tauri::App) -> Result<(), Box<dyn Error>> {    
     println!("{}", app.path_resolver().app_data_dir().unwrap().to_string_lossy());
     println!("{}", app.path_resolver().app_local_data_dir().unwrap().to_string_lossy());
     Ok(())
