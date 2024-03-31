@@ -18,12 +18,14 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Flights::Departure).string().not_null())
-                    .col(ColumnDef::new(Flights::Arrival).string().not_null())
-                    .col(ColumnDef::new(Flights::Aircraft).string().not_null())
+                    .col(ColumnDef::new(Flights::Departure).string().null())
+                    .col(ColumnDef::new(Flights::Arrival).string().null())
+                    .col(ColumnDef::new(Flights::Aircraft).string().null())
+                    .col(ColumnDef::new(Flights::StartTimestamp).timestamp().not_null())
+                    .col(ColumnDef::new(Flights::EndTimestamp).timestamp().null())
                     .to_owned(),
             )
-            .await
+            .await        
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
@@ -39,5 +41,7 @@ enum Flights {
     Id,
     Departure,
     Arrival,
-    Aircraft
+    Aircraft,
+    StartTimestamp,
+    EndTimestamp,
 }
