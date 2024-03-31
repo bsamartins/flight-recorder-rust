@@ -31,6 +31,7 @@ ts-rs = "8.1.0"
 sea-orm-migration = "0.12.15"
 migration = { path = "migration" }
 tracing-subscriber = "0.3.18"
+tracing = "0.1.40"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
