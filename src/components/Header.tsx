@@ -3,6 +3,7 @@ import GlobalStyles from '@mui/joy/GlobalStyles';
 import Sheet from '@mui/joy/Sheet';
 import Typography from "@mui/joy/Typography";
 import ConnectingAirportsIcon from "@mui/icons-material/ConnectingAirportsRounded";
+import {Box} from "@mui/joy";
 
 export default function Header() {
     return (
@@ -27,8 +28,14 @@ export default function Header() {
                     },
                 }}
             />
-            <ConnectingAirportsIcon/>
-            <Typography level="title-lg">Flight Recorder</Typography>
+            <Box sx={{
+                display: 'flex',
+                gap: 1,
+                justifyContent: 'space-between',
+            }}>
+                <ConnectingAirportsIcon/>
+                <Typography level="title-lg">Flight Recorder</Typography>
+            </Box>
         </Sheet>
     );
 }

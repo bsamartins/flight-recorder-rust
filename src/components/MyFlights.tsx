@@ -11,7 +11,6 @@ export default function MyFlights() {
                 flex: 1,
                 width: '100%',
                 mx: 'auto',
-                pt: { xs: 'var(--Header-height)', sm: 0 },
                 display: 'grid',
                 gridTemplateColumns: {
                     xs: '1fr',

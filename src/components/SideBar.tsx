@@ -14,7 +14,7 @@ export default function Sidebar() {
         <Sheet
             className="Sidebar"
             sx={{
-                height: '100dvh',
+                height: '100dvh - var(--Header-height)',
                 width: 'var(--Sidebar-width)',
                 top: 0,
                 p: 1,
