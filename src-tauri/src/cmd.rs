@@ -5,7 +5,7 @@ use chrono::Utc;
 use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
 use sea_orm::{DatabaseConnection, DbErr};
-use tauri::{State, Window};
+use tauri::State;
 
 #[tauri::command]
 pub async fn create_flight<'s>(

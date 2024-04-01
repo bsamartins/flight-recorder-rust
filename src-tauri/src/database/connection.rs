@@ -4,12 +4,12 @@ use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
 
 pub async fn initialize(database: &str) -> Result<DatabaseConnection, DbErr> {
-    println!("Initializing database: {}", database);
+    tracing::info!("Initializing database: {}", database);
     let db = Database::connect(format!("sqlite:{}?mode=rwc", database)).await?;
-    println!("Database initialized");
+    tracing::info!("Database initialized");
 
     Migrator::up(&db, None).await?;
-    println!("Migration executed");
+    tracing::info!("Migration executed");
 
     return Ok(db);
 }

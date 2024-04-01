@@ -59,18 +59,18 @@ async fn test() -> Result<(), Box<dyn Error>> {
 
                 match notification {
                     Some(Notification::Open) => {
-                        println!("Connection opened.");
+                        tracing::info!("Connection opened.");
 
                         // After the connection is successfully open, we register the struct
                         sim_connect_client.register_object::<AirplaneData>()?;
                     }
                     Some(Notification::Object(data)) => {
                         if let Ok(airplane_data) = AirplaneData::try_from(&data) {
-                            println!("{airplane_data:?}");
+                            tracing::info!("{airplane_data:?}");
                             let write_result = write(&influx_client, &airplane_data).await;
                             match write_result {
                                 Err(err) => {
-                                    println!("Influx error: {err:?}");
+                                    tracing::error!("Influx error: {err:?}");
                                 }
                                 _ => (),
                             }
