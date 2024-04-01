@@ -9,7 +9,7 @@ import FlightListItem from './FlightListItem.tsx';
 import {Flight} from "../bindings/Flight.ts";
 import Button from "@mui/joy/Button";
 import {createFlight} from "../commands";
-import {useListFlights} from "../state/flights.ts";
+import {useIsFlightInProgress, useListFlights} from "../state/flights.ts";
 
 type FlightsPaneProps = {
     flights: Flight[];
@@ -22,6 +22,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
         await createFlight();
         await refetchFlights();
     }
+    const [{ data: isFlightInProgress }] = useIsFlightInProgress();
     return (
         <Sheet
             sx={{
@@ -88,7 +89,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     />
                 ))}
             </List>
-            <Button sx={{ mt: 1.5 }} onClick={ _ => onCreateFlight()}>Create Flight</Button>
+            <Button sx={{ mt: 1.5 }} onClick={ _ => onCreateFlight()} disabled={isFlightInProgress}>Create Flight</Button>
         </Sheet>
     );
 }

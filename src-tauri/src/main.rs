@@ -23,6 +23,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .invoke_handler(tauri::generate_handler![
             cmd::list_flights,
             cmd::create_flight,
+            cmd::is_flight_in_progress,
         ])        
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

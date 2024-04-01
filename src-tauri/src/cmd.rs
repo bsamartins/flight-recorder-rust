@@ -5,7 +5,7 @@ use chrono::Utc;
 use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
 use sea_orm::{DatabaseConnection, DbErr};
-use tauri::State;
+use tauri::{State, Window};
 
 #[tauri::command]
 pub async fn create_flight<'s>(
@@ -44,6 +44,15 @@ pub async fn list_flights<'s>(
         .into_iter()
         .map(|flight| flight.to_model())
         .collect());
+}
+
+#[tauri::command]
+pub async fn is_flight_in_progress<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<bool, ErrorModel> {    
+    return Ok(
+        FlightRepository::flight_in_progress(&db_connection)
+            .map_err(map_db_error)
+            .await?
+    );
 }
 
 impl FlightEntity {
