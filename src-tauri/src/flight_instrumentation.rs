@@ -1,8 +1,100 @@
 use chrono::{DateTime, FixedOffset};
 use influxdb2::{Client, FromDataPoint};
-use simconnect_sdk::{Notification, SimConnect, SimConnectObject};
-use std::error::Error;
+use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
+use std::{error::Error, time::Duration};
 use tokio::time::sleep;
+
+pub async fn test() -> Result<(), Box<dyn Error>> {    
+    let mut instrumentation = FlightInstrumentation::new();
+    return instrumentation.start().await;
+}
+
+#[derive(Debug, Default, FromDataPoint)]
+struct InfluxMetrics {
+    ticker: String,
+    value: f64,
+    time: DateTime<FixedOffset>,
+}
+
+#[derive(Default, Debug)]
+struct FlightInstrumentation {
+    connected: bool,
+    data: Option<AirplaneData>,
+}
+
+impl FlightInstrumentation {
+    pub fn new() -> FlightInstrumentation {
+        return Default::default();
+    }
+
+    pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
+        tracing::info!("Starting instrumentation");
+        let mut connect_tries = 0;
+        loop {
+            tracing::trace!("Attempting to connect");
+            let sim_connect_client = SimConnect::new("FlightRecorder");            
+        
+            match sim_connect_client {
+                Ok(mut sim_connect_client) => {
+                    self.connected = true;
+                    connect_tries = 0;
+                    while self.connected {
+                        tracing::trace!("Next dispatch");
+                        let notification = sim_connect_client.get_next_dispatch()?;
+        
+                        match notification {
+                            Some(Notification::Open) => {
+                                tracing::info!("Connection opened.");
+
+                                // After the connection is successfully open, we register the struct
+                                sim_connect_client.register_object::<AirplaneData>()?;
+        
+                                // Register events
+                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed)?;             
+                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;             
+                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;                                             
+                            }
+                            Some(Notification::Object(data)) => {
+                                if let Ok(airplane_data) = AirplaneData::try_from(&data) {
+                                    tracing::debug!("{airplane_data:?}");
+                                    self.data = Some(airplane_data);
+                                }
+                            }
+                            Some(Notification::SystemEvent(event)) => match event {
+                                SystemEvent::Crashed => {
+                                    tracing::debug!("Crashed");
+                                }
+                                SystemEvent::Pause { state } => {
+                                    tracing::debug!("Pause: {}", state);
+                                }
+                                SystemEvent::Sim { state } => {
+                                    tracing::debug!("Sim: {}", state);
+                                }
+                                _ => {}
+                            }
+                            Some(Notification::Quit) => {                            
+                                tracing::info!("SimConnect quit");
+                                self.connected = false;
+                            }
+                            _ => (),
+                        }                        
+                        // sleep for about a frame to reduce CPU usage
+                        sleep(std::time::Duration::from_millis(100)).await;
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("Unable to connect to SimConnect: {}", e);
+                    connect_tries += 1;                    
+                }    
+            }
+
+            if connect_tries > 0 {
+                // if not first attempt to connect
+                sleep(Duration::from_secs(5)).await;
+            }   
+        }
+    }
+}
 
 #[derive(Debug, Clone, SimConnectObject)]
 #[simconnect(period = "second")]
@@ -42,61 +134,22 @@ pub struct AirplaneData {
     pub sim_on_ground: bool,
 }
 
-#[allow(dead_code)]
-#[tokio::main]
-async fn test() -> Result<(), Box<dyn Error>> {
-    let sim_connect_client = SimConnect::new("Receiving data example");
-    let influx_client = Client::new(
-        "http://localhost:8086",
-        "test_org",
-        "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==",
-    );
+/*
+    // let influx_client = Client::new(
+    //     "http://localhost:8086",
+    //     "test_org",
+    //     "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==",
+    // );
 
-    match sim_connect_client {
-        Ok(mut sim_connect_client) => {
-            loop {
-                let notification = sim_connect_client.get_next_dispatch()?;
 
-                match notification {
-                    Some(Notification::Open) => {
-                        tracing::info!("Connection opened.");
-
-                        // After the connection is successfully open, we register the struct
-                        sim_connect_client.register_object::<AirplaneData>()?;
-                    }
-                    Some(Notification::Object(data)) => {
-                        if let Ok(airplane_data) = AirplaneData::try_from(&data) {
-                            tracing::info!("{airplane_data:?}");
-                            let write_result = write(&influx_client, &airplane_data).await;
-                            match write_result {
-                                Err(err) => {
-                                    tracing::error!("Influx error: {err:?}");
-                                }
-                                _ => (),
-                            }
-
-                            // After we have received 10 notifications, we unregister the struct
-                            // if notifications_received > 10 {
-                            //     sim_connect_client.unregister_object::<AirplaneData>()?;
-                            //     println!("Subscription stopped.");
-                            //     break;
+                                // let write_result = write(&influx_client, &airplane_data).await;
+                            // match write_result {
+                            //     Err(err) => {
+                            //         tracing::error!("Influx error: {err:?}");
+                            //     }
+                            //     _ => (),
                             // }
-                        }
-                    }
-                    _ => (),
-                }
-
-                // sleep for about a frame to reduce CPU usage
-                sleep(std::time::Duration::from_millis(16)).await;
-            }
-        }
-        Err(e) => {
-            println!("Error: {e:?}")
-        }
-    }
-    Ok(())
-}
-
+*/
 #[allow(dead_code)]
 async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::error::Error>> {
     use futures::prelude::*;
@@ -147,11 +200,4 @@ async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::
     client.write("test_bucket", stream::iter(points)).await?;
 
     Ok(())
-}
-
-#[derive(Debug, Default, FromDataPoint)]
-struct InfluxMetrics {
-    ticker: String,
-    value: f64,
-    time: DateTime<FixedOffset>,
 }
