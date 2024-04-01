@@ -10,6 +10,7 @@ import {Flight} from "../bindings/Flight.ts";
 import Button from "@mui/joy/Button";
 import {createFlight} from "../commands";
 import {useIsFlightInProgress, useListFlights} from "../state/flights.ts";
+import {useMutation} from "@tanstack/react-query";
 
 type FlightsPaneProps = {
     flights: Flight[];
@@ -18,11 +19,17 @@ type FlightsPaneProps = {
 export default function FlightsPane(props: FlightsPaneProps) {
     const { flights} = props;
     const { refetch: refetchFlights } = useListFlights();
+
+    const [{ data: isFlightInProgress, isLoading }] = useIsFlightInProgress();
+    const createMutation = useMutation({
+        mutationFn: () => createFlight(),
+    });
+
     const onCreateFlight = async () => {
-        await createFlight();
+        await createMutation.mutateAsync();
         await refetchFlights();
     }
-    const [{ data: isFlightInProgress }] = useIsFlightInProgress();
+
     return (
         <Sheet
             sx={{
@@ -89,7 +96,11 @@ export default function FlightsPane(props: FlightsPaneProps) {
                     />
                 ))}
             </List>
-            <Button sx={{ mt: 1.5 }} onClick={ _ => onCreateFlight()} disabled={isFlightInProgress}>Create Flight</Button>
+            <Button sx={{ mt: 1.5 }}
+                    onClick={ _ => onCreateFlight()}
+                    disabled={isFlightInProgress || isLoading || createMutation.isLoading}>
+                Create Flight
+            </Button>
         </Sheet>
     );
 }

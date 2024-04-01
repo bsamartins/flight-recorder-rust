@@ -9,14 +9,20 @@ import '@fontsource/inter';
 import {ThemeProvider} from "@mui/material";
 import theme from "./theme.tsx";
 import {CssBaseline, CssVarsProvider} from "@mui/joy";
+import {QueryClientProvider} from "@tanstack/react-query";
+import {QueryClient} from "@tanstack/query-core";
+
+const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-      <ThemeProvider theme={theme}>
-          <CssVarsProvider>
-              <CssBaseline enableColorScheme />
-              <App />
-          </CssVarsProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+          <ThemeProvider theme={theme}>
+              <CssVarsProvider>
+                  <CssBaseline enableColorScheme />
+                  <App />
+              </CssVarsProvider>
+          </ThemeProvider>
+      </QueryClientProvider>
   </React.StrictMode>,
 );
