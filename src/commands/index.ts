@@ -1,4 +1,4 @@
-import {invoke} from "@tauri-apps/api/tauri";
+import {invoke} from "@tauri-apps/api/core";
 import {Flight} from "../bindings/Flight.ts";
 
 export async function greet(name: string): Promise<string> {

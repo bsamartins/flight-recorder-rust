@@ -21,6 +21,9 @@ pub struct ErrorModel {
 
 impl ErrorModel {
     pub fn new(code: i32, message: String) -> ErrorModel {
-        return ErrorModel { code: code, message: message };
+        return ErrorModel {
+            code: code,
+            message: message,
+        };
     }
 }

@@ -21,11 +21,15 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Flights::Departure).string().null())
                     .col(ColumnDef::new(Flights::Arrival).string().null())
                     .col(ColumnDef::new(Flights::Aircraft).string().null())
-                    .col(ColumnDef::new(Flights::StartTimestamp).timestamp().not_null())
+                    .col(
+                        ColumnDef::new(Flights::StartTimestamp)
+                            .timestamp()
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(Flights::EndTimestamp).timestamp().null())
                     .to_owned(),
             )
-            .await        
+            .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {

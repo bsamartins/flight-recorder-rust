@@ -1,7 +1,7 @@
-use std::error::Error;
 use chrono::{DateTime, FixedOffset};
 use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject};
+use std::error::Error;
 use tokio::time::sleep;
 
 #[derive(Debug, Clone, SimConnectObject)]
@@ -46,7 +46,11 @@ pub struct AirplaneData {
 #[tokio::main]
 async fn test() -> Result<(), Box<dyn Error>> {
     let sim_connect_client = SimConnect::new("Receiving data example");
-    let influx_client = Client::new("http://localhost:8086", "test_org", "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==");
+    let influx_client = Client::new(
+        "http://localhost:8086",
+        "test_org",
+        "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==",
+    );
 
     match sim_connect_client {
         Ok(mut sim_connect_client) => {
@@ -68,7 +72,7 @@ async fn test() -> Result<(), Box<dyn Error>> {
                                 Err(err) => {
                                     println!("Influx error: {err:?}");
                                 }
-                                _ => ()
+                                _ => (),
                             }
 
                             // After we have received 10 notifications, we unregister the struct
@@ -79,7 +83,7 @@ async fn test() -> Result<(), Box<dyn Error>> {
                             // }
                         }
                     }
-                    _ => ()
+                    _ => (),
                 }
 
                 // sleep for about a frame to reduce CPU usage
@@ -94,7 +98,7 @@ async fn test() -> Result<(), Box<dyn Error>> {
 }
 
 #[allow(dead_code)]
-async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::error::Error>>  {
+async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::error::Error>> {
     use futures::prelude::*;
     use influxdb2::models::DataPoint;
 
@@ -112,7 +116,10 @@ async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::
             .field("altitude_above_ground", data.altitude_above_ground)
             .build()?,
         DataPoint::builder("flight")
-            .field("altitude_above_ground_minus_cg", data.altitude_above_ground_minus_cg)
+            .field(
+                "altitude_above_ground_minus_cg",
+                data.altitude_above_ground_minus_cg,
+            )
             .build()?,
         DataPoint::builder("flight")
             .field("altitude_ground", data.altitude_ground)
@@ -130,7 +137,10 @@ async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::
             .field("fuel_total_quantity", data.fuel_total_quantity)
             .build()?,
         DataPoint::builder("flight")
-            .field("fuel_total_quantity_weight", data.fuel_total_quantity_weight)
+            .field(
+                "fuel_total_quantity_weight",
+                data.fuel_total_quantity_weight,
+            )
             .build()?,
     ];
 

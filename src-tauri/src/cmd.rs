@@ -1,3 +1,4 @@
+use crate::database::entities::flights::Model as FlightEntity;
 use crate::model::{ErrorModel, Flight};
 use crate::repositories::flight_repository::FlightRepository;
 use chrono::Utc;
@@ -5,11 +6,15 @@ use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
 use sea_orm::{DatabaseConnection, DbErr};
 use tauri::State;
-use crate::database::entities::flights::Model as FlightEntity;
 
 #[tauri::command]
-pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Flight, ErrorModel> {
-    if FlightRepository::flight_in_progress(&db_connection).map_err(map_db_error).await? {
+pub async fn create_flight<'s>(
+    db_connection: State<'s, DatabaseConnection>,
+) -> Result<Flight, ErrorModel> {
+    if FlightRepository::flight_in_progress(&db_connection)
+        .map_err(map_db_error)
+        .await?
+    {
         return Err(ErrorModel::new(-1, "Flight in progress".to_string()));
     }
     let flight = FlightRepository::save(
@@ -20,8 +25,8 @@ pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> 
             arrival: Option::None,
             aircraft: Option::None,
             start_timestamp: Utc::now(),
-            end_timestamp: Option::None
-        }
+            end_timestamp: Option::None,
+        },
     )
     .map_err(map_db_error)
     .await?;
@@ -29,13 +34,16 @@ pub async fn create_flight<'s>(db_connection: State<'s, DatabaseConnection>) -> 
 }
 
 #[tauri::command]
-pub async fn list_flights<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<Vec<Flight>, ErrorModel> {
+pub async fn list_flights<'s>(
+    db_connection: State<'s, DatabaseConnection>,
+) -> Result<Vec<Flight>, ErrorModel> {
     let flights = FlightRepository::find_all(&db_connection)
-    .map_err(map_db_error)
-    .await?;
-    return Ok(flights.into_iter()
+        .map_err(map_db_error)
+        .await?;
+    return Ok(flights
+        .into_iter()
         .map(|flight| flight.to_model())
-        .collect())
+        .collect());
 }
 
 impl FlightEntity {
@@ -45,7 +53,7 @@ impl FlightEntity {
             departure: self.departure.clone(),
             arrival: self.arrival.clone(),
             aircraft: self.aircraft.clone(),
-        }
+        };
     }
 }
 
