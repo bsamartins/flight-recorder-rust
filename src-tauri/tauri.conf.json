@@ -26,8 +26,10 @@
         "fullscreen": false,
         "resizable": true,
         "title": "flight-recorder-rust",
-        "width": 800,
-        "height": 600
+        "width": 900,
+        "height": 900,
+        "minWidth": 900,
+        "minHeight": 900
       }
     ],
     "security": {
