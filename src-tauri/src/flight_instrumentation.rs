@@ -1,10 +1,11 @@
 use chrono::{DateTime, FixedOffset};
 use influxdb2::{Client, FromDataPoint};
+use num_traits::ToPrimitive;
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 use std::{error::Error, time::Duration};
 use tokio::time::sleep;
 
-pub async fn test() -> Result<(), Box<dyn Error>> {    
+pub async fn test() -> Result<(), Box<dyn Error>> {
     let mut instrumentation = FlightInstrumentation::new();
     return instrumentation.start().await;
 }
@@ -20,6 +21,7 @@ struct InfluxMetrics {
 struct FlightInstrumentation {
     connected: bool,
     data: Option<AirplaneData>,
+    paused: bool,
 }
 
 impl FlightInstrumentation {
@@ -32,8 +34,8 @@ impl FlightInstrumentation {
         let mut connect_tries = 0;
         loop {
             tracing::trace!("Attempting to connect");
-            let sim_connect_client = SimConnect::new("FlightRecorder");            
-        
+            let sim_connect_client = SimConnect::new("FlightRecorder");
+
             match sim_connect_client {
                 Ok(mut sim_connect_client) => {
                     self.connected = true;
@@ -41,18 +43,18 @@ impl FlightInstrumentation {
                     while self.connected {
                         tracing::trace!("Next dispatch");
                         let notification = sim_connect_client.get_next_dispatch()?;
-        
+
                         match notification {
                             Some(Notification::Open) => {
                                 tracing::info!("Connection opened.");
 
                                 // After the connection is successfully open, we register the struct
                                 sim_connect_client.register_object::<AirplaneData>()?;
-        
+
                                 // Register events
-                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed)?;             
-                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;             
-                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;                                             
+                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed)?;
+                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;
+                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;
                             }
                             Some(Notification::Object(data)) => {
                                 if let Ok(airplane_data) = AirplaneData::try_from(&data) {
@@ -66,33 +68,44 @@ impl FlightInstrumentation {
                                 }
                                 SystemEvent::Pause { state } => {
                                     tracing::debug!("Pause: {}", state);
+                                    self.paused = state;
                                 }
                                 SystemEvent::Sim { state } => {
                                     tracing::debug!("Sim: {}", state);
                                 }
                                 _ => {}
                             }
-                            Some(Notification::Quit) => {                            
+                            Some(Notification::Quit) => {
                                 tracing::info!("SimConnect quit");
                                 self.connected = false;
                             }
                             _ => (),
-                        }                        
+                        }
                         // sleep for about a frame to reduce CPU usage
                         sleep(std::time::Duration::from_millis(100)).await;
                     }
                 }
                 Err(e) => {
                     tracing::warn!("Unable to connect to SimConnect: {}", e);
-                    connect_tries += 1;                    
-                }    
+                    connect_tries += 1;
+                }
             }
 
             if connect_tries > 0 {
                 // if not first attempt to connect
                 sleep(Duration::from_secs(5)).await;
-            }   
+            }
         }
+    }
+
+    fn session_active(self) -> bool {
+        let in_game_types = 2.0..5.0;
+        return self.data.map(|data| in_game_types.contains(&data.camera_state))
+            .unwrap_or(false);
+    }
+
+    fn paused(self) -> bool {
+        return self.paused;
     }
 }
 
@@ -132,6 +145,8 @@ pub struct AirplaneData {
     pub fuel_total_quantity_weight: f64,
     #[simconnect(name = "SIM ON GROUND")]
     pub sim_on_ground: bool,
+    #[simconnect(name = "CAMERA STATE")]
+    pub camera_state: f64,
 }
 
 /*
