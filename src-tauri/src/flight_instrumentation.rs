@@ -18,9 +18,9 @@ struct InfluxMetrics {
 }
 
 #[derive(Default, Debug)]
-struct FlightInstrumentation {
+pub struct FlightInstrumentation {
     connected: bool,
-    data: Option<AirplaneData>,
+    // data: Option<AirplaneData>,
     paused: bool,
 }
 
@@ -59,7 +59,7 @@ impl FlightInstrumentation {
                             Some(Notification::Object(data)) => {
                                 if let Ok(airplane_data) = AirplaneData::try_from(&data) {
                                     tracing::debug!("{airplane_data:?}");
-                                    self.data = Some(airplane_data);
+                                    // self.data = Some(airplane_data);
                                 }
                             }
                             Some(Notification::SystemEvent(event)) => match event {
@@ -100,8 +100,9 @@ impl FlightInstrumentation {
 
     fn session_active(self) -> bool {
         let in_game_types = 2.0..5.0;
-        return self.data.map(|data| in_game_types.contains(&data.camera_state))
-            .unwrap_or(false);
+        // return self.data.map(|data| in_game_types.contains(&data.camera_state))
+        //     .unwrap_or(false);
+        return false;
     }
 
     fn paused(self) -> bool {
