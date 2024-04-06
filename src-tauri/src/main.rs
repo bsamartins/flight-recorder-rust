@@ -56,9 +56,8 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
         let db_result = database::connection::initialize(&database_path).await;
         match db_result {
             Ok(db) => {
-                let guard = handle.lock();
-                *guard
-                handle.manage(db);
+                let guard = handle.lock().unwrap();
+                *guard.manage(bd);
             }
             Err(e) => {
                 tracing::error!("Failed to initalize database: {}", e);
