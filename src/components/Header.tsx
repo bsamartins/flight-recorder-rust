@@ -1,10 +1,29 @@
-import GlobalStyles from '@mui/joy/GlobalStyles'
-import Sheet from '@mui/joy/Sheet'
-import Typography from '@mui/joy/Typography'
-import ConnectingAirportsIcon from '@mui/icons-material/ConnectingAirportsRounded'
-import { Box } from '@mui/joy'
+import GlobalStyles from '@mui/joy/GlobalStyles';
+import Sheet from '@mui/joy/Sheet';
+import Typography from '@mui/joy/Typography';
+import ConnectingAirportsIcon from '@mui/icons-material/ConnectingAirportsRounded';
+import { Box, IconButton } from '@mui/joy';
+import { useWindowMaximized } from '../tauri/react.ts';
+import { getCurrent } from '@tauri-apps/api/window';
+import MinimizeIcon from '@mui/icons-material/Minimize';
+import MaximizeIcon from '@mui/icons-material/Maximize';
+import FilterNoneIcon from '@mui/icons-material/FilterNone';
 
 export default function Header() {
+  const maximized = useWindowMaximized();
+  const toggleMaximize = () => {
+    getCurrent()
+      .toggleMaximize()
+      .then(() => console.log('maximized'))
+      .catch((err) => console.error(err));
+  };
+  const minimize = () => {
+    getCurrent()
+      .minimize()
+      .then(() => console.log('minimized'))
+      .catch((err) => console.error(err));
+  };
+
   return (
     <Sheet
       sx={{
@@ -19,6 +38,7 @@ export default function Header() {
         borderColor: 'background.level1',
         boxShadow: 'sm',
       }}
+      onDoubleClick={() => toggleMaximize()}
     >
       <GlobalStyles
         styles={{
@@ -37,6 +57,24 @@ export default function Header() {
         <ConnectingAirportsIcon />
         <Typography level='title-lg'>Flight Recorder</Typography>
       </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          gap: 1,
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+        }}
+      >
+        <IconButton size='sm' onClick={() => minimize()}>
+          <MinimizeIcon />
+        </IconButton>
+        <IconButton size='sm' onClick={() => toggleMaximize()}>
+          {maximized ? <FilterNoneIcon /> : <MaximizeIcon />}
+        </IconButton>
+      </Box>
     </Sheet>
-  )
+  );
 }

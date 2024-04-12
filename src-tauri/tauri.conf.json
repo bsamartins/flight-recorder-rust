@@ -29,7 +29,8 @@
         "width": 900,
         "height": 900,
         "minWidth": 900,
-        "minHeight": 900
+        "minHeight": 900,
+        "decorations": false
       }
     ],
     "security": {

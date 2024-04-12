@@ -1,7 +1,7 @@
-import { Box } from '@mui/joy'
-import SideBar from './components/SideBar'
-import Header from './components/Header.tsx'
-import MyFlights from './components/MyFlights.tsx'
+import { Box } from '@mui/joy';
+import SideBar from './components/SideBar';
+import Header from './components/Header.tsx';
+import MyFlights from './components/MyFlights.tsx';
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
         </Box>
       </Box>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
