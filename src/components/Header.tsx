@@ -8,6 +8,7 @@ import { getCurrent } from '@tauri-apps/api/window';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import MaximizeIcon from '@mui/icons-material/Maximize';
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
+import CloseSharpIcon from '@mui/icons-material/CloseSharp';
 
 export default function Header() {
   const maximized = useWindowMaximized();
@@ -21,6 +22,13 @@ export default function Header() {
     getCurrent()
       .minimize()
       .then(() => console.log('minimized'))
+      .catch((err) => console.error(err));
+  };
+
+  const close = () => {
+    getCurrent()
+      .close()
+      .then(() => console.log('closed'))
       .catch((err) => console.error(err));
   };
 
@@ -73,6 +81,9 @@ export default function Header() {
         </IconButton>
         <IconButton size='sm' onClick={() => toggleMaximize()}>
           {maximized ? <FilterNoneIcon /> : <MaximizeIcon />}
+        </IconButton>
+        <IconButton size='sm' onClick={() => close()}>
+          <CloseSharpIcon />
         </IconButton>
       </Box>
     </Sheet>
