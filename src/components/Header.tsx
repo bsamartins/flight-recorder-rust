@@ -45,6 +45,9 @@ export default function Header() {
         borderBottom: '1px solid',
         borderColor: 'background.level1',
         boxShadow: 'sm',
+        '& > *': {
+          userSelect: 'none',
+        },
       }}
       onDoubleClick={() => toggleMaximize()}
     >
@@ -65,10 +68,10 @@ export default function Header() {
         <ConnectingAirportsIcon />
         <Typography level='title-lg'>Flight Recorder</Typography>
       </Box>
+      <Box data-tauri-drag-region>&nbsp;</Box>
       <Box
         sx={{
           display: 'flex',
-          flex: 1,
           flexDirection: 'row',
           flexWrap: 'nowrap',
           gap: 1,
