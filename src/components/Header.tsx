@@ -85,7 +85,15 @@ export default function Header() {
         <IconButton size='sm' onClick={() => toggleMaximize()}>
           {maximized ? <FilterNoneIcon /> : <MaximizeIcon />}
         </IconButton>
-        <IconButton size='sm' onClick={() => close()}>
+        <IconButton
+          size='sm'
+          onClick={() => close()}
+          sx={{
+            '&:hover': {
+              backgroundColor: 'darkred',
+            },
+          }}
+        >
           <CloseSharpIcon />
         </IconButton>
       </Box>
