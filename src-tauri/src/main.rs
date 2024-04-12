@@ -36,33 +36,33 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
-    let database_path = app
-        .path()
-        .app_local_data_dir()
-        .unwrap()
-        .join("data.sqlite")
-        .display()
-        .to_string();
+fn setup(_app: &mut App) -> Result<(), Box<dyn Error>> {
+    // let database_path = app
+    //     .path()
+    //     .app_local_data_dir()
+    //     .unwrap()
+    //     .join("data.sqlite")
+    //     .display()
+    //     .to_string();
 
-    let handle = Arc::new(Mutex::new(app.app_handle()));
+    // let handle = Arc::new(Mutex::new(app.app_handle()));
     
-    tauri::async_runtime::spawn(async move {
-        let mut flight_instrumentation = FlightInstrumentation::new();        
-        flight_instrumentation.start().await;
-    });
+    // tauri::async_runtime::spawn(async move {
+    //     let mut flight_instrumentation = FlightInstrumentation::new();        
+    //     flight_instrumentation.start().await;
+    // });
 
-    futures::executor::block_on(async {
-        let db_result = database::connection::initialize(&database_path).await;
-        match db_result {
-            Ok(db) => {
-                let guard = handle.lock().unwrap();
-                *guard.manage(bd);
-            }
-            Err(e) => {
-                tracing::error!("Failed to initalize database: {}", e);
-            }
-        }
-    });
+    // futures::executor::block_on(async {
+    //     let db_result = database::connection::initialize(&database_path).await;
+    //     match db_result {
+    //         Ok(db) => {
+    //             let guard = handle.lock().unwrap();
+    //             (*guard).manage(&db);
+    //         }
+    //         Err(e) => {
+    //             tracing::error!("Failed to initalize database: {}", e);
+    //         }
+    //     }
+    // });
     Ok(())
 }
