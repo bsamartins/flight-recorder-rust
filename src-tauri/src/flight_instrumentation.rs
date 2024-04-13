@@ -17,11 +17,16 @@ pub struct FlightInstrumentation {
     connected: bool,
     data: Option<AirplaneData>,
     paused: bool,
+    listener: Option<fn(AirplaneData)>,
 }
 
 impl FlightInstrumentation {
     pub fn new() -> FlightInstrumentation {
         return Default::default();
+    }
+
+    pub fn set_listener(&mut self, callback: fn(AirplaneData)) {
+        self.listener = Some(callback);
     }
 
     pub fn start(&mut self) -> Result<(), Box<dyn Error>> {
@@ -55,6 +60,12 @@ impl FlightInstrumentation {
                                 if let Ok(airplane_data) = AirplaneData::try_from(&data) {
                                     tracing::debug!("{airplane_data:?}");
                                     // self.data = Some(airplane_data);
+                                    match self.listener {
+                                        Some(callback) => {
+                                            callback(airplane_data);
+                                        }
+                                        None => {}
+                                    }
                                 }
                             }
                             Some(Notification::SystemEvent(event)) => match event {

@@ -8,7 +8,7 @@ use std::thread::spawn;
 use futures::lock::Mutex;
 use sea_orm::DatabaseConnection;
 use tauri::{App, Manager};
-use tracing::Level;
+use tracing::{info, Level};
 use tracing_subscriber;
 
 use flight_instrumentation::FlightInstrumentation;
@@ -46,6 +46,9 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
 
     spawn(|| {
         let mut flight_instrumentation = FlightInstrumentation::new();
+        flight_instrumentation.set_listener(|data| {
+            tracing::info!("{data:?}")
+        });
         let _ = flight_instrumentation
             .start();
     });
