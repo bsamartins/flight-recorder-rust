@@ -1,11 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{borrow::Borrow, error::Error};
+use std::{error::Error};
 use std::sync::Arc;
 use std::thread::spawn;
 
-use futures::FutureExt;
 use futures::lock::Mutex;
 use tauri::{App, Manager};
 use tracing::Level;
@@ -42,6 +41,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
+    initialize_database(app);
+
+    spawn(|| {
+        let mut flight_instrumentation = FlightInstrumentation::new();
+        let _ = flight_instrumentation
+            .start();
+    });
+
+    Ok(())
+}
+
+fn initialize_database(app: &mut App) {
     let database_path = app
         .path()
         .app_local_data_dir()
@@ -52,23 +63,11 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
 
     let handle = Arc::new(Mutex::new(app.app_handle()));
 
-    spawn(|| {
-        let mut flight_instrumentation = FlightInstrumentation::new();
-        let _ = flight_instrumentation
-            .start();
-    });
-
     futures::executor::block_on(async {
-        let db_result = database::connection::initialize(&database_path).await;
-        match db_result {
-            Ok(db) => {
-                let guard = handle.lock().await;
-                guard.clone().manage(db);
-            }
-            Err(e) => {
-                tracing::error!("Failed to initialise database: {}", e);
-            }
-        }
+        let db = database::connection::initialize(&database_path).await
+            .expect("Failed to initialise database");
+
+        let guard = handle.lock().await;
+        guard.clone().manage(db);
     });
-    Ok(())
 }

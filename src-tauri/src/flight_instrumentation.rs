@@ -1,14 +1,9 @@
-use chrono::{DateTime, FixedOffset};
-use influxdb2::{Client, FromDataPoint};
-use num_traits::ToPrimitive;
-use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 use std::{error::Error, time::Duration};
 use std::thread::sleep;
 
-pub fn test() -> Result<(), Box<dyn Error>> {
-    let mut instrumentation = FlightInstrumentation::new();
-    return instrumentation.start();
-}
+use chrono::{DateTime, FixedOffset};
+use influxdb2::{Client, FromDataPoint};
+use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 
 #[derive(Debug, Default, FromDataPoint)]
 struct InfluxMetrics {
@@ -20,7 +15,7 @@ struct InfluxMetrics {
 #[derive(Default, Debug)]
 pub struct FlightInstrumentation {
     connected: bool,
-    // data: Option<AirplaneData>,
+    data: Option<AirplaneData>,
     paused: bool,
 }
 
@@ -100,9 +95,8 @@ impl FlightInstrumentation {
 
     fn session_active(self) -> bool {
         let in_game_types = 2.0..5.0;
-        // return self.data.map(|data| in_game_types.contains(&data.camera_state))
-        //     .unwrap_or(false);
-        return false;
+        return self.data.map(|data| in_game_types.contains(&data.camera_state))
+            .unwrap_or(false);
     }
 
     fn paused(self) -> bool {
