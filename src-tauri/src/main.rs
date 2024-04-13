@@ -53,7 +53,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn initialize_database(app: &mut App) -> Result<DatabaseConnection, Box<dyn Error>> {
+fn initialize_database(app: &mut App) -> Result<Arc<DatabaseConnection>, Box<dyn Error>> {
     let database_path = app
         .path()
         .app_local_data_dir()
@@ -66,9 +66,8 @@ fn initialize_database(app: &mut App) -> Result<DatabaseConnection, Box<dyn Erro
 
     return futures::executor::block_on(async {
         let db = database::connection::initialize(&database_path).await?;
-
         let guard = handle.lock().await;
         guard.clone().manage(db.clone());
-        Ok(db.clone())
+        Ok(Arc::new(db.clone()))
     });
 }
