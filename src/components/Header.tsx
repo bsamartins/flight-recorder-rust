@@ -90,7 +90,7 @@ export default function Header() {
           onClick={() => close()}
           sx={{
             '&:hover': {
-              backgroundColor: 'darkred',
+              backgroundColor: (theme) => theme.palette.danger.softHoverBg,
             },
           }}
         >
