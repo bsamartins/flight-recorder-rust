@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{borrow::Borrow, error::Error};
+use std::sync::Arc;
 use std::thread::spawn;
 
 use futures::FutureExt;
@@ -40,16 +41,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn setup(_app: &mut App) -> Result<(), Box<dyn Error>> {
-    // let database_path = app
-    //     .path()
-    //     .app_local_data_dir()
-    //     .unwrap()
-    //     .join("data.sqlite")
-    //     .display()
-    //     .to_string();
-    //
-    // let handle = Arc::new(Mutex::new(app.app_handle()));
+fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
+    let database_path = app
+        .path()
+        .app_local_data_dir()
+        .unwrap()
+        .join("data.sqlite")
+        .display()
+        .to_string();
+
+    let handle = Arc::new(Mutex::new(app.app_handle()));
 
     spawn(|| {
         let mut flight_instrumentation = FlightInstrumentation::new();
@@ -57,17 +58,17 @@ fn setup(_app: &mut App) -> Result<(), Box<dyn Error>> {
             .start();
     });
 
-    // futures::executor::block_on(async {
-    //     let db_result = database::connection::initialize(&database_path).await;
-    //     match db_result {
-    //         Ok(db) => {
-    //             let guard = handle.lock().await;
-    //             guard.clone().manage(db);
-    //         }
-    //         Err(e) => {
-    //             tracing::error!("Failed to initialise database: {}", e);
-    //         }
-    //     }
-    // });
+    futures::executor::block_on(async {
+        let db_result = database::connection::initialize(&database_path).await;
+        match db_result {
+            Ok(db) => {
+                let guard = handle.lock().await;
+                guard.clone().manage(db);
+            }
+            Err(e) => {
+                tracing::error!("Failed to initialise database: {}", e);
+            }
+        }
+    });
     Ok(())
 }
