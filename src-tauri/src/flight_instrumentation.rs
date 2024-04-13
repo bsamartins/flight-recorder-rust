@@ -3,11 +3,11 @@ use influxdb2::{Client, FromDataPoint};
 use num_traits::ToPrimitive;
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 use std::{error::Error, time::Duration};
-use tokio::time::sleep;
+use std::thread::sleep;
 
-pub async fn test() -> Result<(), Box<dyn Error>> {
+pub fn test() -> Result<(), Box<dyn Error>> {
     let mut instrumentation = FlightInstrumentation::new();
-    return instrumentation.start().await;
+    return instrumentation.start();
 }
 
 #[derive(Debug, Default, FromDataPoint)]
@@ -29,7 +29,7 @@ impl FlightInstrumentation {
         return Default::default();
     }
 
-    pub async fn start(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn start(&mut self) -> Result<(), Box<dyn Error>> {
         tracing::info!("Starting instrumentation");
         let mut connect_tries = 0;
         loop {
@@ -82,7 +82,7 @@ impl FlightInstrumentation {
                             _ => (),
                         }
                         // sleep for about a frame to reduce CPU usage
-                        sleep(std::time::Duration::from_millis(100)).await;
+                        sleep(Duration::from_millis(100));
                     }
                 }
                 Err(e) => {
@@ -93,7 +93,7 @@ impl FlightInstrumentation {
 
             if connect_tries > 0 {
                 // if not first attempt to connect
-                sleep(Duration::from_secs(5)).await;
+                sleep(Duration::from_secs(5));
             }
         }
     }
