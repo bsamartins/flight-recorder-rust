@@ -1,107 +1,112 @@
 use std::{error::Error, time::Duration};
-use std::thread::sleep;
+use std::fmt::{Debug, Formatter};
 
 use chrono::{DateTime, FixedOffset};
 use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
-
-#[derive(Debug, Default, FromDataPoint)]
-struct InfluxMetrics {
-    ticker: String,
-    value: f64,
-    time: DateTime<FixedOffset>,
-}
+use tokio::time::sleep;
+use tokio_cron_scheduler::{JobScheduler, JobSchedulerError};
+use std::borrow::Borrow;
+use std::rc::Rc;
 
 #[derive(Default, Debug)]
 pub struct FlightInstrumentation {
     connected: bool,
     data: Option<AirplaneData>,
     paused: bool,
-    listener: Option<fn(AirplaneData)>,
 }
 
 impl FlightInstrumentation {
     pub fn new() -> FlightInstrumentation {
-        return Default::default();
+        FlightInstrumentation::default()
     }
 
-    pub fn set_listener(&mut self, callback: fn(AirplaneData)) {
-        self.listener = Some(callback);
+    pub fn data(self) -> Option<AirplaneData> {
+        return self.data;
     }
 
     pub fn start(&mut self) -> Result<(), Box<dyn Error>> {
         tracing::info!("Starting instrumentation");
-        let mut connect_tries = 0;
-        loop {
-            tracing::trace!("Attempting to connect");
-            let sim_connect_client = SimConnect::new("FlightRecorder");
+        tokio::spawn(async {
+            let mut connect_tries = 0;
+            loop {
+                tracing::trace!("Attempting to connect");
+                let sim_connect_client = SimConnect::new("FlightRecorder");
 
-            match sim_connect_client {
-                Ok(mut sim_connect_client) => {
-                    self.connected = true;
-                    connect_tries = 0;
-                    while self.connected {
-                        tracing::trace!("Next dispatch");
-                        let notification = sim_connect_client.get_next_dispatch()?;
-
-                        match notification {
-                            Some(Notification::Open) => {
-                                tracing::info!("Connection opened.");
-
-                                // After the connection is successfully open, we register the struct
-                                sim_connect_client.register_object::<AirplaneData>()?;
-
-                                // Register events
-                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed)?;
-                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;
-                                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;
-                            }
-                            Some(Notification::Object(data)) => {
-                                if let Ok(airplane_data) = AirplaneData::try_from(&data) {
-                                    tracing::debug!("{airplane_data:?}");
-                                    // self.data = Some(airplane_data);
-                                    match self.listener {
-                                        Some(callback) => {
-                                            callback(airplane_data);
-                                        }
-                                        None => {}
-                                    }
-                                }
-                            }
-                            Some(Notification::SystemEvent(event)) => match event {
-                                SystemEvent::Crashed => {
-                                    tracing::debug!("Crashed");
-                                }
-                                SystemEvent::Pause { state } => {
-                                    tracing::debug!("Pause: {}", state);
-                                    self.paused = state;
-                                }
-                                SystemEvent::Sim { state } => {
-                                    tracing::debug!("Sim: {}", state);
+                match sim_connect_client {
+                    Ok(mut sim_connect_client) => {
+                        self.connected = true;
+                        connect_tries = 0;
+                        let rc = Box::new(sim_connect_client.borrow());
+                        while self.connected {
+                            let handle_res = self.handle_dispatch(rc.clone());
+                            match handle_res {
+                                Err(err) => {
+                                    tracing::warn!("Dispatch error: {}", err)
                                 }
                                 _ => {}
                             }
-                            Some(Notification::Quit) => {
-                                tracing::info!("SimConnect quit");
-                                self.connected = false;
-                            }
-                            _ => (),
+                            // sleep for about a frame to reduce CPU usage
+                            sleep(Duration::from_millis(100)).await;
                         }
-                        // sleep for about a frame to reduce CPU usage
-                        sleep(Duration::from_millis(100));
+                    }
+                    Err(e) => {
+                        tracing::warn!("Unable to connect to SimConnect: {}", e);
+                        connect_tries += 1;
                     }
                 }
-                Err(e) => {
-                    tracing::warn!("Unable to connect to SimConnect: {}", e);
-                    connect_tries += 1;
+
+                if connect_tries > 0 {
+                    // if not first attempt to connect
+                    sleep(Duration::from_secs(5)).await;
                 }
             }
+        });
+        Ok(())
+    }
 
-            if connect_tries > 0 {
-                // if not first attempt to connect
-                sleep(Duration::from_secs(5));
+    fn handle_dispatch(&mut self, mut sim_connect_client: Box<&SimConnect>) -> Result<(), Box<dyn Error>> {
+        tracing::trace!("Next dispatch");
+        let notification = sim_connect_client.get_next_dispatch()?;
+
+        match notification {
+            Some(Notification::Open) => {
+                tracing::info!("Connection opened.");
+
+                // After the connection is successfully open, we register the struct
+                sim_connect_client.register_object::<AirplaneData>()?;
+
+                // Register events
+                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed)?;
+                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;
+                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;
             }
+            Some(Notification::Object(data)) => {
+                if let Ok(airplane_data) = AirplaneData::try_from(&data) {
+                    tracing::debug!("{airplane_data:?}");
+                    self.data = Some(airplane_data);
+                }
+            }
+            Some(Notification::SystemEvent(event)) => match event {
+                SystemEvent::Crashed => {
+                    tracing::debug!("Crashed");
+                }
+                SystemEvent::Pause { state } => {
+                    tracing::debug!("Pause: {}", state);
+                    self.paused = state;
+                }
+                SystemEvent::Sim { state } => {
+                    tracing::debug!("Sim: {}", state);
+                }
+                _ => {}
+            }
+            Some(Notification::Quit) => {
+                tracing::info!("SimConnect quit");
+                self.connected = false;
+            }
+            _ => (),
         }
+        Ok(())
     }
 
     fn session_active(self) -> bool {
@@ -153,72 +158,4 @@ pub struct AirplaneData {
     pub sim_on_ground: bool,
     #[simconnect(name = "CAMERA STATE")]
     pub camera_state: f64,
-}
-
-/*
-    // let influx_client = Client::new(
-    //     "http://localhost:8086",
-    //     "test_org",
-    //     "2e_irTK_ZcnL9tXXvRC2wR5OMUKNgD4tWE8gkPBQAYn2KFJgm2Xe7JDRcAi4_pjtGM4JjVpwd30qOa3T_ff0tg==",
-    // );
-
-
-                                // let write_result = write(&influx_client, &airplane_data).await;
-                            // match write_result {
-                            //     Err(err) => {
-                            //         tracing::error!("Influx error: {err:?}");
-                            //     }
-                            //     _ => (),
-                            // }
-*/
-#[allow(dead_code)]
-async fn write(client: &Client, data: &AirplaneData) -> Result<(), Box<dyn std::error::Error>> {
-    use futures::prelude::*;
-    use influxdb2::models::DataPoint;
-
-    let points = vec![
-        DataPoint::builder("flight")
-            .field("airspeed_indicated", data.airspeed_indicated)
-            .build()?,
-        DataPoint::builder("flight")
-            .field("airspeed_true", data.airspeed_true)
-            .build()?,
-        DataPoint::builder("flight")
-            .field("altitude", data.altitude)
-            .build()?,
-        DataPoint::builder("flight")
-            .field("altitude_above_ground", data.altitude_above_ground)
-            .build()?,
-        DataPoint::builder("flight")
-            .field(
-                "altitude_above_ground_minus_cg",
-                data.altitude_above_ground_minus_cg,
-            )
-            .build()?,
-        DataPoint::builder("flight")
-            .field("altitude_ground", data.altitude_ground)
-            .build()?,
-        DataPoint::builder("flight")
-            .field("vertical_speed", data.vertical_speed)
-            .build()?,
-        DataPoint::builder("flight")
-            .field("ground_velocity", data.ground_velocity)
-            .build()?,
-        DataPoint::builder("flight")
-            .field("fuel_total_capacity", data.fuel_total_capacity)
-            .build()?,
-        DataPoint::builder("flight")
-            .field("fuel_total_quantity", data.fuel_total_quantity)
-            .build()?,
-        DataPoint::builder("flight")
-            .field(
-                "fuel_total_quantity_weight",
-                data.fuel_total_quantity_weight,
-            )
-            .build()?,
-    ];
-
-    client.write("test_bucket", stream::iter(points)).await?;
-
-    Ok(())
 }

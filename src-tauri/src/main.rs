@@ -1,21 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::any::Any;
 use std::error::Error;
-use std::fmt::Display;
 use std::sync::Arc;
-use std::thread::spawn;
 
 use futures::lock::Mutex;
 use sea_orm::DatabaseConnection;
 use tauri::{App, Manager};
-use tokio_cron_scheduler::JobSchedulerError;
 use tracing::Level;
 use tracing_subscriber;
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
 
 use flight_instrumentation::FlightInstrumentation;
 use state::FlightState;
@@ -56,16 +50,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
-    let db = setup_database(app)?;
+    let _db = setup_database(app)?;
 
     let _ = tauri::async_runtime::spawn(async {
-        let result = setup_instrumentation().await;
-        match result {
-            Ok(_) => {}
-            Err(err) => tracing::error!("Failed to initialize {}", err)
-        }
+        let flight_instrumentation_result = setup_instrumentation().await;
+        let flight_instrumentation = match flight_instrumentation_result {
+            Ok(res) => { res }
+            Err(err) => {
+                tracing::error!("Failed to initialize {}", err);
+                return;
+            }
+        };
 
-        let result = setup_recorder().await;
+        let result = setup_recorder(flight_instrumentation).await;
         match result {
             Ok(_) => {}
             Err(err) => tracing::error!("Failed to initialize {}", err)
@@ -94,23 +91,24 @@ fn setup_database(app: &mut App) -> Result<Arc<DatabaseConnection>, Box<dyn Erro
     });
 }
 
-async fn setup_instrumentation() -> Result<(), String> {
+async fn setup_instrumentation() -> Result<FlightInstrumentation, String> {
+    tracing::info!("Setting up instrumentation");
     let mut flight_instrumentation = FlightInstrumentation::new();
-    flight_instrumentation.set_listener(|data| {
-        tracing::info!("{data:?}")
-    });
-    let _ = flight_instrumentation
-        .start();
 
-    Ok(())
+    tracing::info!("Starting instrumentation");
+    let _ = flight_instrumentation.start();
+
+    tracing::info!("Done");
+    Ok(flight_instrumentation.into())
 }
 
-async fn setup_recorder() -> Result<(), String> {
+async fn setup_recorder(flight_instrumentation: FlightInstrumentation) -> Result<(), String> {
+    tracing::info!("Setting up recorder");
     let flight_recorder_res = FlightRecorder::new().await;
     let flight_recorder = match flight_recorder_res {
         Ok(fr) => { fr }
         Err(err) => return Err(format!("Failed to initialise flight recorder {err}"))
     };
-    let _ = flight_recorder.start().await;
+    let _ = flight_recorder.start(flight_instrumentation).await;
     Ok(())
 }

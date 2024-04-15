@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
 use uuid::Uuid;
+use crate::flight_instrumentation::FlightInstrumentation;
 
 pub struct FlightRecorder {
     scheduler: JobScheduler,
@@ -18,8 +19,10 @@ impl FlightRecorder {
         )
     }
 
-    pub async fn start(self) -> Result<Uuid, String> {
+    pub async fn start(self, flight_instrumentation: FlightInstrumentation) -> Result<Uuid, String> {
         tracing::info!("Starting recorder");
+        let data = flight_instrumentation.data();
+        tracing::info!("instrumentation -> {data:?}");
         let job_result = Job::new_repeated(Duration::from_secs(1), Self::execute);
         let job = match job_result {
             Ok(job) => {
@@ -48,7 +51,7 @@ impl FlightRecorder {
         Ok(uuid)
     }
 
-    fn execute(uuid: Uuid, scheduler: JobScheduler) {
+    fn execute(uuid: Uuid, _scheduler: JobScheduler) {
         tracing::info!("Executing task {uuid}")
     }
 }
