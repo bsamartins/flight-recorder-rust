@@ -4,7 +4,7 @@ import Typography from '@mui/joy/Typography';
 import ConnectingAirportsIcon from '@mui/icons-material/ConnectingAirportsRounded';
 import { Box, IconButton } from '@mui/joy';
 import { useWindowMaximized } from '../tauri/react.ts';
-import { getCurrent } from '@tauri-apps/api/window';
+import { Window } from '@tauri-apps/api/window';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import MaximizeIcon from '@mui/icons-material/Maximize';
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
@@ -13,20 +13,20 @@ import CloseSharpIcon from '@mui/icons-material/CloseSharp';
 export default function Header() {
   const maximized = useWindowMaximized();
   const toggleMaximize = () => {
-    getCurrent()
+    Window.getCurrent()
       .toggleMaximize()
       .then(() => console.log('maximized'))
       .catch((err) => console.error(err));
   };
   const minimize = () => {
-    getCurrent()
+    Window.getCurrent()
       .minimize()
       .then(() => console.log('minimized'))
       .catch((err) => console.error(err));
   };
 
   const close = () => {
-    getCurrent()
+    Window.getCurrent()
       .close()
       .then(() => console.log('closed'))
       .catch((err) => console.error(err));
