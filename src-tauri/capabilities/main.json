@@ -4,12 +4,12 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "permissions": [
-    "window:default",
-    "window:allow-start-dragging",
-    "window:allow-toggle-maximize",
-    "window:allow-minimize",
-    "window:allow-close",
-    "window:allow-start-dragging",
-    "event:default"
+    "core:window:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-minimize",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging",
+    "core:event:default"
   ]
 }
