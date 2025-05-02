@@ -1,13 +1,13 @@
 use std::{error::Error, time::Duration};
+use std::borrow::Borrow;
 use std::fmt::{Debug, Formatter};
+use std::rc::Rc;
 
 use chrono::{DateTime, FixedOffset};
-use influxdb2::{Client, FromDataPoint};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
+use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tokio_cron_scheduler::{JobScheduler, JobSchedulerError};
-use std::borrow::Borrow;
-use std::rc::Rc;
 
 #[derive(Default, Debug)]
 pub struct FlightInstrumentation {
@@ -25,9 +25,9 @@ impl FlightInstrumentation {
         return self.data;
     }
 
-    pub fn start(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn start(mut self) -> Result<(), Box<dyn Error>> {
         tracing::info!("Starting instrumentation");
-        tokio::spawn(async {
+        tokio::spawn(async move {
             let mut connect_tries = 0;
             loop {
                 tracing::trace!("Attempting to connect");
