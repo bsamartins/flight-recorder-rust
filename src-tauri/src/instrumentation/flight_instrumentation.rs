@@ -1,6 +1,7 @@
 use std::{error::Error, time::Duration};
 use std::fmt::{Debug};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+use tokio::sync::Mutex;
 
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 use tokio::task::JoinHandle;
@@ -11,6 +12,7 @@ pub struct FlightInstrumentation {
     stop_signal: Arc<AtomicBool>,
     background_task: Option<JoinHandle<()>>,
     paused: Arc<AtomicBool>,
+    airplane_data: Arc<Mutex<Option<AirplaneData>>>,
 }
 
 impl FlightInstrumentation {
@@ -20,13 +22,14 @@ impl FlightInstrumentation {
             stop_signal: Arc::new(AtomicBool::new(false)),
             background_task: None,
             paused: Arc::new(AtomicBool::new(false)),
+            airplane_data: Arc::new(Mutex::new(None)),
         }
     }
 
     pub fn start(&mut self) {
         let connected = self.connected.clone();
         let stop_signal = self.stop_signal.clone();
-        let paused = self.paused.clone();
+        let airplane_data = self.airplane_data.clone();
         self.background_task = Some(tokio::spawn(async move {
             let mut connect_tries = 0;
             loop {
@@ -77,8 +80,10 @@ impl FlightInstrumentation {
                 sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;
                 sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;
             }
-            Some(Notification::Object(_data)) => {
-                // You can add AirplaneData handling here if needed
+            Some(Notification::Object(data)) => {
+                if let Ok(airplane_data) = AirplaneData::try_from(&data) {
+                    tracing::debug!("{airplane_data:?}");
+                }
             }
             Some(Notification::SystemEvent(event)) => match event {
                 SystemEvent::Crashed => {
@@ -116,6 +121,11 @@ impl FlightInstrumentation {
 
     pub fn is_paused(&self) -> bool {
         self.paused.load(Ordering::Relaxed)
+    }
+
+    pub async fn get_airplane_data(&self) -> Option<AirplaneData> {
+        let lock = self.airplane_data.lock().await;
+        lock.clone()
     }
 }
 
@@ -158,5 +168,3 @@ pub struct AirplaneData {
     #[simconnect(name = "CAMERA STATE")]
     pub camera_state: f64,
 }
-
-

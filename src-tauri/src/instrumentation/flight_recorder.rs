@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
 use uuid::Uuid;
-use flight_instrumentation::FlightInstrumentationV2;
+use flight_instrumentation::FlightInstrumentation;
 use crate::instrumentation::flight_instrumentation;
 
 pub struct FlightRecorder {
@@ -20,7 +20,7 @@ impl FlightRecorder {
         )
     }
 
-    pub async fn start(self, flight_instrumentation: FlightInstrumentationV2) -> Result<Uuid, String> {
+    pub async fn start(self, flight_instrumentation: FlightInstrumentation) -> Result<Uuid, String> {
         tracing::info!("Starting recorder");
         let data = flight_instrumentation.data();
         tracing::info!("instrumentation -> {data:?}");

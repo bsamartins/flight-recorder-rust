@@ -11,7 +11,7 @@ use tracing::Level;
 use tracing_subscriber;
 use tracing_subscriber::EnvFilter;
 
-use instrumentation::flight_instrumentation::FlightInstrumentationV2;
+use instrumentation::flight_instrumentation::FlightInstrumentation;
 use instrumentation::flight_recorder::FlightRecorder;
 use state::FlightState;
 
@@ -89,9 +89,9 @@ fn setup_database(app: &mut App) -> Result<Arc<DatabaseConnection>, Box<dyn Erro
     });
 }
 
-async fn setup_instrumentation() -> Result<FlightInstrumentationV2, String> {
+async fn setup_instrumentation() -> Result<FlightInstrumentation, String> {
     tracing::info!("Setting up instrumentation");
-    let mut flight_instrumentation = FlightInstrumentationV2::new();
+    let mut flight_instrumentation = FlightInstrumentation::new();
 
     tracing::info!("Starting instrumentation");
     let _ = flight_instrumentation.start();
@@ -100,7 +100,7 @@ async fn setup_instrumentation() -> Result<FlightInstrumentationV2, String> {
     Ok(flight_instrumentation.into())
 }
 
-async fn setup_recorder(flight_instrumentation: FlightInstrumentationV2) -> Result<(), String> {
+async fn setup_recorder(flight_instrumentation: FlightInstrumentation) -> Result<(), String> {
     tracing::info!("Setting up recorder");
     let flight_recorder_res = FlightRecorder::new().await;
     let flight_recorder = match flight_recorder_res {
