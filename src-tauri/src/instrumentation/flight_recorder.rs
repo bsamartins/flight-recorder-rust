@@ -3,7 +3,8 @@ use std::time::Duration;
 
 use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
 use uuid::Uuid;
-use crate::flight_instrumentation::FlightInstrumentation;
+use flight_instrumentation::FlightInstrumentation;
+use crate::instrumentation::flight_instrumentation;
 
 pub struct FlightRecorder {
     scheduler: JobScheduler,

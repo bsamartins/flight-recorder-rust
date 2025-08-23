@@ -11,18 +11,16 @@ use tracing::Level;
 use tracing_subscriber;
 use tracing_subscriber::EnvFilter;
 
-use flight_instrumentation::FlightInstrumentation;
+use instrumentation::flight_instrumentation::FlightInstrumentation;
+use instrumentation::flight_recorder::FlightRecorder;
 use state::FlightState;
-
-use crate::flight_recorder::FlightRecorder;
 
 mod cmd;
 mod database;
-mod flight_instrumentation;
+mod instrumentation;
 mod model;
 mod repositories;
 mod state;
-mod flight_recorder;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tokio::main]
