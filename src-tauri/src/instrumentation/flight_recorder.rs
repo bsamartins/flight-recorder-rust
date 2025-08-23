@@ -22,7 +22,7 @@ impl FlightRecorder {
 
     pub async fn start(self, flight_instrumentation: FlightInstrumentation) -> Result<Uuid, String> {
         tracing::info!("Starting recorder");
-        let data = flight_instrumentation.data();
+        let data = flight_instrumentation.get_airplane_data().await;
         tracing::info!("instrumentation -> {data:?}");
         let job_result = Job::new_repeated(Duration::from_secs(1), Self::execute);
         let job = match job_result {

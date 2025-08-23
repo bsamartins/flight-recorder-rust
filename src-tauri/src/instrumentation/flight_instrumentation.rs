@@ -29,7 +29,6 @@ impl FlightInstrumentation {
     pub fn start(&mut self) {
         let connected = self.connected.clone();
         let stop_signal = self.stop_signal.clone();
-        let airplane_data = self.airplane_data.clone();
         self.background_task = Some(tokio::spawn(async move {
             let mut connect_tries = 0;
             loop {
@@ -45,7 +44,7 @@ impl FlightInstrumentation {
                         connected.store(true, Ordering::Relaxed);
                         connect_tries = 0;
                         while connected.load(Ordering::Relaxed) && !stop_signal.load(Ordering::Relaxed) {
-                            let handle_res = self.handle_dispatch(&mut sim_connect_client);
+                            let handle_res = self.handle_dispatch(&mut sim_connect_client).await;
                             match handle_res {
                                 Err(err) => {
                                     tracing::warn!("Dispatch error: {}", err)
@@ -69,7 +68,7 @@ impl FlightInstrumentation {
         }));
     }
 
-    fn handle_dispatch(&self, sim_connect_client: &mut SimConnect) -> Result<(), Box<dyn Error>> {
+    async fn handle_dispatch(&self, sim_connect_client: &mut SimConnect) -> Result<(), Box<dyn Error>> {
         tracing::trace!("Next dispatch");
         let notification = sim_connect_client.get_next_dispatch()?;
         match notification {
@@ -83,6 +82,8 @@ impl FlightInstrumentation {
             Some(Notification::Object(data)) => {
                 if let Ok(airplane_data) = AirplaneData::try_from(&data) {
                     tracing::debug!("{airplane_data:?}");
+                    let mut lock = self.airplane_data.lock().await;
+                    *lock = Some(airplane_data);
                 }
             }
             Some(Notification::SystemEvent(event)) => match event {
