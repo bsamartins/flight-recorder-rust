@@ -1,54 +1,57 @@
 use std::{error::Error, time::Duration};
-use std::borrow::Borrow;
-use std::fmt::{Debug, Formatter};
-use std::rc::Rc;
+use std::fmt::{Debug};
+use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
-use chrono::{DateTime, FixedOffset};
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
-use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 use tokio::time::sleep;
-use tokio_cron_scheduler::{JobScheduler, JobSchedulerError};
 
-#[derive(Default, Debug)]
 pub struct FlightInstrumentation {
-    connected: bool,
-    data: Option<AirplaneData>,
-    paused: bool,
+    connected: Arc<AtomicBool>,
+    stop_signal: Arc<AtomicBool>,
+    background_task: Option<JoinHandle<()>>,
+    paused: Arc<AtomicBool>,
 }
 
 impl FlightInstrumentation {
-    pub fn new() -> FlightInstrumentation {
-        FlightInstrumentation::default()
+    pub fn new() -> Self {
+        Self {
+            connected: Arc::new(AtomicBool::new(false)),
+            stop_signal: Arc::new(AtomicBool::new(false)),
+            background_task: None,
+            paused: Arc::new(AtomicBool::new(false)),
+        }
     }
 
-    pub fn data(self) -> Option<AirplaneData> {
-        return self.data;
-    }
-
-    pub fn start(mut self) -> Result<(), Box<dyn Error>> {
-        tracing::info!("Starting instrumentation");
-        tokio::spawn(async move {
+    pub fn start(&mut self) {
+        let connected = self.connected.clone();
+        let stop_signal = self.stop_signal.clone();
+        let paused = self.paused.clone();
+        self.background_task = Some(tokio::spawn(async move {
             let mut connect_tries = 0;
             loop {
+                if stop_signal.load(Ordering::Relaxed) {
+                    connected.store(false, Ordering::Relaxed);
+                    break;
+                }
                 tracing::trace!("Attempting to connect");
                 let sim_connect_client = SimConnect::new("FlightRecorder");
 
                 match sim_connect_client {
                     Ok(mut sim_connect_client) => {
-                        self.connected = true;
+                        connected.store(true, Ordering::Relaxed);
                         connect_tries = 0;
-                        let rc = Box::new(sim_connect_client.borrow());
-                        while self.connected {
-                            let handle_res = self.handle_dispatch(rc.clone());
+                        while connected.load(Ordering::Relaxed) && !stop_signal.load(Ordering::Relaxed) {
+                            let handle_res = self.handle_dispatch(&mut sim_connect_client);
                             match handle_res {
                                 Err(err) => {
                                     tracing::warn!("Dispatch error: {}", err)
                                 }
                                 _ => {}
                             }
-                            // sleep for about a frame to reduce CPU usage
                             sleep(Duration::from_millis(100)).await;
                         }
+                        connected.store(false, Ordering::Relaxed);
                     }
                     Err(e) => {
                         tracing::warn!("Unable to connect to SimConnect: {}", e);
@@ -57,35 +60,25 @@ impl FlightInstrumentation {
                 }
 
                 if connect_tries > 0 {
-                    // if not first attempt to connect
                     sleep(Duration::from_secs(5)).await;
                 }
             }
-        });
-        Ok(())
+        }));
     }
 
-    fn handle_dispatch(&mut self, mut sim_connect_client: Box<&SimConnect>) -> Result<(), Box<dyn Error>> {
+    fn handle_dispatch(&self, sim_connect_client: &mut SimConnect) -> Result<(), Box<dyn Error>> {
         tracing::trace!("Next dispatch");
         let notification = sim_connect_client.get_next_dispatch()?;
-
         match notification {
             Some(Notification::Open) => {
                 tracing::info!("Connection opened.");
-
-                // After the connection is successfully open, we register the struct
                 sim_connect_client.register_object::<AirplaneData>()?;
-
-                // Register events
                 sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed)?;
                 sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;
                 sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;
             }
-            Some(Notification::Object(data)) => {
-                if let Ok(airplane_data) = AirplaneData::try_from(&data) {
-                    tracing::debug!("{airplane_data:?}");
-                    self.data = Some(airplane_data);
-                }
+            Some(Notification::Object(_data)) => {
+                // You can add AirplaneData handling here if needed
             }
             Some(Notification::SystemEvent(event)) => match event {
                 SystemEvent::Crashed => {
@@ -93,30 +86,36 @@ impl FlightInstrumentation {
                 }
                 SystemEvent::Pause { state } => {
                     tracing::debug!("Pause: {}", state);
-                    self.paused = state;
+                    self.paused.store(state, Ordering::Relaxed);
                 }
                 SystemEvent::Sim { state } => {
                     tracing::debug!("Sim: {}", state);
                 }
                 _ => {}
-            }
+            },
             Some(Notification::Quit) => {
                 tracing::info!("SimConnect quit");
-                self.connected = false;
+                self.connected.store(false, Ordering::Relaxed);
             }
             _ => (),
         }
         Ok(())
     }
 
-    fn session_active(self) -> bool {
-        let in_game_types = 2.0..5.0;
-        return self.data.map(|data| in_game_types.contains(&data.camera_state))
-            .unwrap_or(false);
+    pub async fn stop(&mut self) {
+        self.stop_signal.store(true, Ordering::Relaxed);
+        if let Some(handle) = self.background_task.take() {
+            let _ = handle.await;
+        }
+        self.connected.store(false, Ordering::Relaxed);
     }
 
-    fn paused(self) -> bool {
-        return self.paused;
+    pub fn is_connected(&self) -> bool {
+        self.connected.load(Ordering::Relaxed)
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::Relaxed)
     }
 }
 
@@ -159,3 +158,5 @@ pub struct AirplaneData {
     #[simconnect(name = "CAMERA STATE")]
     pub camera_state: f64,
 }
+
+
