@@ -20,10 +20,14 @@ impl FlightRecorder {
         )
     }
 
-    pub async fn start(self, flight_instrumentation: FlightInstrumentation) -> Result<Uuid, String> {
+    pub async fn start(self, mut flight_instrumentation: FlightInstrumentation) -> Result<Uuid, String> {
         tracing::info!("Starting recorder");
-        let data = flight_instrumentation.get_airplane_data().await;
-        tracing::info!("instrumentation -> {data:?}");
+        tokio::spawn(async move {
+            let rx = flight_instrumentation.receiver();
+            while let Some(data) = rx.recv().await {
+                tracing::info!("Received data: {:?}", data);
+            }
+        });
         let job_result = Job::new_repeated(Duration::from_secs(1), Self::execute);
         let job = match job_result {
             Ok(job) => {

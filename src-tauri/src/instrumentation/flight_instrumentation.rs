@@ -1,35 +1,35 @@
-use std::{error::Error, time::Duration};
-use std::fmt::{Debug};
+use std::{time::Duration};
+use std::fmt::Debug;
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
-use tokio::sync::Mutex;
 
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
-use tokio::task::JoinHandle;
-use tokio::time::sleep;
 
 pub struct FlightInstrumentation {
     connected: Arc<AtomicBool>,
     stop_signal: Arc<AtomicBool>,
-    background_task: Option<JoinHandle<()>>,
     paused: Arc<AtomicBool>,
-    airplane_data: Arc<Mutex<Option<AirplaneData>>>,
+    tx: tokio::sync::mpsc::Sender<AirplaneData>,
+    rx: tokio::sync::mpsc::Receiver<AirplaneData>,
 }
 
 impl FlightInstrumentation {
     pub fn new() -> Self {
+        let (tx, rx) = tokio::sync::mpsc::channel(100);
         Self {
             connected: Arc::new(AtomicBool::new(false)),
             stop_signal: Arc::new(AtomicBool::new(false)),
-            background_task: None,
             paused: Arc::new(AtomicBool::new(false)),
-            airplane_data: Arc::new(Mutex::new(None)),
+            tx,
+            rx,
         }
     }
 
     pub fn start(&mut self) {
         let connected = self.connected.clone();
         let stop_signal = self.stop_signal.clone();
-        self.background_task = Some(tokio::spawn(async move {
+        let paused = self.paused.clone();
+        let tx = self.tx.clone();
+        std::thread::spawn(move || {
             let mut connect_tries = 0;
             loop {
                 if stop_signal.load(Ordering::Relaxed) {
@@ -44,14 +44,49 @@ impl FlightInstrumentation {
                         connected.store(true, Ordering::Relaxed);
                         connect_tries = 0;
                         while connected.load(Ordering::Relaxed) && !stop_signal.load(Ordering::Relaxed) {
-                            let handle_res = self.handle_dispatch(&mut sim_connect_client).await;
-                            match handle_res {
+                            tracing::trace!("Next dispatch");
+                            let dispatch_result = sim_connect_client.get_next_dispatch();
+                            match dispatch_result {
+                                Ok(notification) => {
+                                    match notification {
+                                        Some(Notification::Open) => {
+                                            tracing::info!("Connection opened.");
+                                            sim_connect_client.register_object::<AirplaneData>().unwrap();
+                                            sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed).unwrap();
+                                            sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause).unwrap();
+                                            sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim).unwrap();
+                                        }
+                                        Some(Notification::Object(data)) => {
+                                            if let Ok(airplane_data) = AirplaneData::try_from(&data) {
+                                                tracing::debug!("{airplane_data:?}");
+                                                let _ = tx.try_send(airplane_data);
+                                            }
+                                        }
+                                        Some(Notification::SystemEvent(event)) => match event {
+                                            SystemEvent::Crashed => {
+                                                tracing::debug!("Crashed");
+                                            }
+                                            SystemEvent::Pause { state } => {
+                                                tracing::debug!("Pause: {}", state);
+                                                paused.store(state, Ordering::Relaxed);
+                                            }
+                                            SystemEvent::Sim { state } => {
+                                                tracing::debug!("Sim: {}", state);
+                                            }
+                                            _ => {}
+                                        },
+                                        Some(Notification::Quit) => {
+                                            tracing::info!("SimConnect quit");
+                                            connected.store(false, Ordering::Relaxed);
+                                        }
+                                        _ => (),
+                                    }
+                                }
                                 Err(err) => {
                                     tracing::warn!("Dispatch error: {}", err)
                                 }
-                                _ => {}
                             }
-                            sleep(Duration::from_millis(100)).await;
+                            std::thread::sleep(Duration::from_millis(100));
                         }
                         connected.store(false, Ordering::Relaxed);
                     }
@@ -62,58 +97,10 @@ impl FlightInstrumentation {
                 }
 
                 if connect_tries > 0 {
-                    sleep(Duration::from_secs(5)).await;
+                    std::thread::sleep(Duration::from_secs(5));
                 }
             }
-        }));
-    }
-
-    async fn handle_dispatch(&self, sim_connect_client: &mut SimConnect) -> Result<(), Box<dyn Error>> {
-        tracing::trace!("Next dispatch");
-        let notification = sim_connect_client.get_next_dispatch()?;
-        match notification {
-            Some(Notification::Open) => {
-                tracing::info!("Connection opened.");
-                sim_connect_client.register_object::<AirplaneData>()?;
-                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Crashed)?;
-                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Pause)?;
-                sim_connect_client.subscribe_to_system_event(simconnect_sdk::SystemEventRequest::Sim)?;
-            }
-            Some(Notification::Object(data)) => {
-                if let Ok(airplane_data) = AirplaneData::try_from(&data) {
-                    tracing::debug!("{airplane_data:?}");
-                    let mut lock = self.airplane_data.lock().await;
-                    *lock = Some(airplane_data);
-                }
-            }
-            Some(Notification::SystemEvent(event)) => match event {
-                SystemEvent::Crashed => {
-                    tracing::debug!("Crashed");
-                }
-                SystemEvent::Pause { state } => {
-                    tracing::debug!("Pause: {}", state);
-                    self.paused.store(state, Ordering::Relaxed);
-                }
-                SystemEvent::Sim { state } => {
-                    tracing::debug!("Sim: {}", state);
-                }
-                _ => {}
-            },
-            Some(Notification::Quit) => {
-                tracing::info!("SimConnect quit");
-                self.connected.store(false, Ordering::Relaxed);
-            }
-            _ => (),
-        }
-        Ok(())
-    }
-
-    pub async fn stop(&mut self) {
-        self.stop_signal.store(true, Ordering::Relaxed);
-        if let Some(handle) = self.background_task.take() {
-            let _ = handle.await;
-        }
-        self.connected.store(false, Ordering::Relaxed);
+        });
     }
 
     pub fn is_connected(&self) -> bool {
@@ -124,9 +111,8 @@ impl FlightInstrumentation {
         self.paused.load(Ordering::Relaxed)
     }
 
-    pub async fn get_airplane_data(&self) -> Option<AirplaneData> {
-        let lock = self.airplane_data.lock().await;
-        lock.clone()
+    pub fn receiver(&mut self) -> &mut tokio::sync::mpsc::Receiver<AirplaneData> {
+        &mut self.rx
     }
 }
 
