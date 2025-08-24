@@ -25,8 +25,8 @@ mod state;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let filter = EnvFilter::from_default_env()
-        .add_directive("sqlx::query=error".parse()?);
+    let filter = EnvFilter::from_default_env();
+        // .add_directive("sqlx::query=error".parse()?);
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
@@ -48,9 +48,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
+    tracing::info!("Setting up database");
     let _db = setup_database(app)?;
+    tracing::info!("Database setup complete");
 
     let _ = tauri::async_runtime::spawn(async {
+        tracing::info!("Starting instrumentation");
         let flight_instrumentation_result = setup_instrumentation().await;
         let flight_instrumentation = match flight_instrumentation_result {
             Ok(res) => { res }
@@ -59,14 +62,17 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
                 return;
             }
         };
+        tracing::info!("Instrumentation started");
 
+        tracing::info!("Starting recorder");
         let result = setup_recorder(flight_instrumentation).await;
         match result {
             Ok(_) => {}
             Err(err) => tracing::error!("Failed to initialize {}", err)
         }
+        tracing::info!("Recorder started");
     });
-
+    tracing::info!("Setup complete");
     Ok(())
 }
 
