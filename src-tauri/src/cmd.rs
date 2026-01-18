@@ -55,6 +55,11 @@ pub async fn is_flight_in_progress<'s>(db_connection: State<'s, DatabaseConnecti
     );
 }
 
+#[tauri::command]
+pub fn is_instrumentation_connected(state: tauri::State<crate::state::FlightState>) -> bool {
+    state.is_instrumentation_connected()
+}
+
 impl FlightEntity {
     fn to_model(&self) -> Flight {
         return Flight {

@@ -41,6 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             cmd::list_flights,
             cmd::create_flight,
             cmd::is_flight_in_progress,
+            cmd::is_instrumentation_connected,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -52,27 +53,29 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     let _db = setup_database(app)?;
     tracing::info!("Database setup complete");
 
-    let _ = tauri::async_runtime::spawn(async {
+    let flight_state = app.state::<FlightState>().clone();
+
+    let _ = tauri::async_runtime::spawn(async move {
         tracing::info!("Starting instrumentation");
         let flight_instrumentation_result = setup_instrumentation().await;
-        let flight_instrumentation = match flight_instrumentation_result {
-            Ok(res) => { res }
+        match flight_instrumentation_result {
+            Ok(res) => {
+                flight_state.set_instrumentation_connected(true);
+                tracing::info!("Instrumentation started");
+                tracing::info!("Starting recorder");
+                let result = setup_recorder(res).await;
+                match result {
+                    Ok(_) => {}
+                    Err(err) => tracing::error!("Failed to initialize {}", err)
+                }
+            }
             Err(err) => {
+                flight_state.set_instrumentation_connected(false);
                 tracing::error!("Failed to initialize {}", err);
                 return;
             }
-        };
-        tracing::info!("Instrumentation started");
-
-        tracing::info!("Starting recorder");
-        let result = setup_recorder(flight_instrumentation).await;
-        match result {
-            Ok(_) => {}
-            Err(err) => tracing::error!("Failed to initialize {}", err)
         }
-        tracing::info!("Recorder started");
     });
-    tracing::info!("Setup complete");
     Ok(())
 }
 
