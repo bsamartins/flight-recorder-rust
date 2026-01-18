@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let _ = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .setup(setup)
-        .manage(<FlightState as Default>::default())
+        .manage(Arc::new(<FlightState as Default>::default()))
         .invoke_handler(tauri::generate_handler![
             cmd::list_flights,
             cmd::create_flight,
@@ -53,7 +53,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     let _db = setup_database(app)?;
     tracing::info!("Database setup complete");
 
-    let flight_state = app.state::<FlightState>().clone();
+    let flight_state = app.state::<Arc<FlightState>>().inner().clone();
 
     let _ = tauri::async_runtime::spawn(async move {
         tracing::info!("Starting instrumentation");
