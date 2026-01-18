@@ -1,6 +1,9 @@
+use std::sync::Arc;
+
 use crate::database::entities::flights::Model as FlightEntity;
 use crate::model::{ErrorModel, Flight};
 use crate::repositories::flight_repository::FlightRepository;
+use crate::state::FlightState;
 use chrono::Utc;
 use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
@@ -56,7 +59,7 @@ pub async fn is_flight_in_progress<'s>(db_connection: State<'s, DatabaseConnecti
 }
 
 #[tauri::command]
-pub fn is_instrumentation_connected(state: tauri::State<crate::state::FlightState>) -> bool {
+pub fn is_instrumentation_connected(state: State<Arc<FlightState>>) -> bool {
     state.is_instrumentation_connected()
 }
 
