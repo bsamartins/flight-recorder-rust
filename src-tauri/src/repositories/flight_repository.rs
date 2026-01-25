@@ -39,15 +39,24 @@ impl FlightRepository {
             .await
     }
 
-    pub async fn update_aircraft(
+    pub async fn update_aircraft_and_model(
         db: &DatabaseConnection,
         flight_id: &str,
         aircraft: &str,
+        aircraft_model: &str,
     ) -> Result<(), DbErr> {
         if let Some(flight) = Flights::find_by_id(flight_id.to_string()).one(db).await? {
-            if flight.aircraft.is_none() {
+            let need_aircraft_update = flight.aircraft.is_none();
+            let need_model_update = flight.aircraft_model.is_none();
+
+            if need_aircraft_update || need_model_update {
                 let mut active_flight = flight.into_active_model();
-                active_flight.aircraft = sea_orm::Set(Some(aircraft.to_string()));
+                if need_aircraft_update {
+                    active_flight.aircraft = sea_orm::Set(Some(aircraft.to_string()));
+                }
+                if need_model_update {
+                    active_flight.aircraft_model = sea_orm::Set(Some(aircraft_model.to_string()));
+                }
                 active_flight.update(db).await?;
             }
         }

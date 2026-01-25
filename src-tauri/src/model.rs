@@ -9,6 +9,7 @@ pub struct Flight {
     pub departure: Option<String>,
     pub arrival: Option<String>,
     pub aircraft: Option<String>,
+    pub aircraft_model: Option<String>,
 }
 
 #[derive(Serialize, TS, PartialEq, Eq, Hash, Clone)]

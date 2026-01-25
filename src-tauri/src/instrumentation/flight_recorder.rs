@@ -30,14 +30,14 @@ impl FlightRecorder {
             while let Some(data) = rx.recv().await {
                 tracing::info!("Received data: {:?}", data);
 
-                // Update aircraft on first data point if not already set
+                // Update aircraft and aircraft_model on first data point if not already set
                 if !aircraft_updated {
                     if let Ok(Some(flight)) = FlightRepository::get_flight_in_progress(&db).await {
-                        if flight.aircraft.is_none() {
-                            if let Err(e) = FlightRepository::update_aircraft(&db, &flight.id, &data.title).await {
-                                tracing::error!("Failed to update aircraft: {}", e);
+                        if flight.aircraft.is_none() || flight.aircraft_model.is_none() {
+                            if let Err(e) = FlightRepository::update_aircraft_and_model(&db, &flight.id, &data.atc_id, &data.title).await {
+                                tracing::error!("Failed to update aircraft info: {}", e);
                             } else {
-                                tracing::info!("Updated aircraft to: {}", data.title);
+                                tracing::info!("Updated aircraft to: {}, aircraft_model to: {}", data.atc_id, data.title);
                             }
                         }
                         aircraft_updated = true;

@@ -124,6 +124,8 @@ pub struct AirplaneData {
     pub title: String,
     #[simconnect(name = "CATEGORY")]
     pub category: String,
+    #[simconnect(name = "ATC ID")]
+    pub atc_id: String,
     #[simconnect(name = "PLANE LATITUDE", unit = "degrees")]
     pub lat: f64,
     #[simconnect(name = "PLANE LONGITUDE", unit = "degrees")]

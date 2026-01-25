@@ -27,6 +27,7 @@ pub async fn create_flight<'s>(
             departure: Option::None,
             arrival: Option::None,
             aircraft: Option::None,
+            aircraft_model: Option::None,
             start_timestamp: Utc::now(),
             end_timestamp: Option::None,
         },
@@ -70,6 +71,7 @@ impl FlightEntity {
             departure: self.departure.clone(),
             arrival: self.arrival.clone(),
             aircraft: self.aircraft.clone(),
+            aircraft_model: self.aircraft_model.clone(),
         };
     }
 }
