@@ -5,6 +5,8 @@ use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
 use uuid::Uuid;
 use flight_instrumentation::FlightInstrumentation;
 use crate::instrumentation::flight_instrumentation;
+use sea_orm::DatabaseConnection;
+use crate::repositories::flight_repository::FlightRepository;
 
 pub struct FlightRecorder {
     scheduler: JobScheduler,
@@ -20,12 +22,27 @@ impl FlightRecorder {
         )
     }
 
-    pub async fn start(self, mut flight_instrumentation: FlightInstrumentation) -> Result<Uuid, String> {
+    pub async fn start(self, mut flight_instrumentation: FlightInstrumentation, db: DatabaseConnection) -> Result<Uuid, String> {
         tracing::info!("Starting recorder");
         tokio::spawn(async move {
             let rx = flight_instrumentation.receiver();
+            let mut aircraft_updated = false;
             while let Some(data) = rx.recv().await {
                 tracing::info!("Received data: {:?}", data);
+
+                // Update aircraft on first data point if not already set
+                if !aircraft_updated {
+                    if let Ok(Some(flight)) = FlightRepository::get_flight_in_progress(&db).await {
+                        if flight.aircraft.is_none() {
+                            if let Err(e) = FlightRepository::update_aircraft(&db, &flight.id, &data.title).await {
+                                tracing::error!("Failed to update aircraft: {}", e);
+                            } else {
+                                tracing::info!("Updated aircraft to: {}", data.title);
+                            }
+                        }
+                        aircraft_updated = true;
+                    }
+                }
             }
         });
         let job_result = Job::new_repeated(Duration::from_secs(1), Self::execute);

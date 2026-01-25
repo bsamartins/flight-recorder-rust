@@ -50,10 +50,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     tracing::info!("Setting up database");
-    let _db = setup_database(app)?;
+    let db = setup_database(app)?;
     tracing::info!("Database setup complete");
 
     let flight_state = app.state::<Arc<FlightState>>().inner().clone();
+    let db_clone = (*db).clone();
 
     let _ = tauri::async_runtime::spawn(async move {
         tracing::info!("Starting instrumentation");
@@ -63,7 +64,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
                 flight_state.set_instrumentation_connected(true);
                 tracing::info!("Instrumentation started");
                 tracing::info!("Starting recorder");
-                let result = setup_recorder(res).await;
+                let result = setup_recorder(res, db_clone).await;
                 match result {
                     Ok(_) => {}
                     Err(err) => tracing::error!("Failed to initialize {}", err)
@@ -109,13 +110,13 @@ async fn setup_instrumentation() -> Result<FlightInstrumentation, String> {
     Ok(flight_instrumentation.into())
 }
 
-async fn setup_recorder(flight_instrumentation: FlightInstrumentation) -> Result<(), String> {
+async fn setup_recorder(flight_instrumentation: FlightInstrumentation, db: DatabaseConnection) -> Result<(), String> {
     tracing::info!("Setting up recorder");
     let flight_recorder_res = FlightRecorder::new().await;
     let flight_recorder = match flight_recorder_res {
         Ok(fr) => { fr }
         Err(err) => return Err(format!("Failed to initialise flight recorder {err}"))
     };
-    let _ = flight_recorder.start(flight_instrumentation).await;
+    let _ = flight_recorder.start(flight_instrumentation, db).await;
     Ok(())
 }
