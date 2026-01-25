@@ -7,15 +7,14 @@ use crate::state::FlightState;
 use chrono::Utc;
 use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
-use sea_orm::{DatabaseConnection, DbErr};
+use sea_orm::DbErr;
 use tauri::State;
 use itertools::Itertools;
 
 #[tauri::command]
 pub async fn create_flight<'s>(
-    db_connection: State<'s, DatabaseConnection>,
+    repo: State<'s, FlightRepository>,
 ) -> Result<Flight, ErrorModel> {
-    let repo = FlightRepository::new(db_connection.inner().clone());
     if repo
         .flight_in_progress()
         .map_err(map_db_error)
@@ -39,9 +38,8 @@ pub async fn create_flight<'s>(
 
 #[tauri::command]
 pub async fn list_flights<'s>(
-    db_connection: State<'s, DatabaseConnection>,
+    repo: State<'s, FlightRepository>,
 ) -> Result<Vec<Flight>, ErrorModel> {
-    let repo = FlightRepository::new(db_connection.inner().clone());
     let flights = repo
         .find_all()
         .map_err(map_db_error)
@@ -54,8 +52,7 @@ pub async fn list_flights<'s>(
 }
 
 #[tauri::command]
-pub async fn is_flight_in_progress<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<bool, ErrorModel> {
-    let repo = FlightRepository::new(db_connection.inner().clone());
+pub async fn is_flight_in_progress<'s>(repo: State<'s, FlightRepository>) -> Result<bool, ErrorModel> {
     Ok(
         repo
             .flight_in_progress()
