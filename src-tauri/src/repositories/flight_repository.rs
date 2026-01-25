@@ -1,6 +1,7 @@
 use crate::database::entities::{
     flights::Column as FlightColumns, flights::Model as FlightEntity, prelude::Flights,
 };
+use chrono::Utc;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel,
     QueryFilter,
@@ -57,6 +58,17 @@ impl FlightRepository {
                 if need_model_update {
                     active_flight.aircraft_model = sea_orm::Set(Some(aircraft_model.to_string()));
                 }
+                active_flight.update(db).await?;
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn end_flight(db: &DatabaseConnection, flight_id: &str) -> Result<(), DbErr> {
+        if let Some(flight) = Flights::find_by_id(flight_id.to_string()).one(db).await? {
+            if flight.end_timestamp.is_none() {
+                let mut active_flight = flight.into_active_model();
+                active_flight.end_timestamp = sea_orm::Set(Some(Utc::now()));
                 active_flight.update(db).await?;
             }
         }

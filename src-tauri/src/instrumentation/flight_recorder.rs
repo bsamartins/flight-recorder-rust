@@ -4,7 +4,7 @@ use std::time::Duration;
 use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
 use uuid::Uuid;
 use flight_instrumentation::FlightInstrumentation;
-use crate::instrumentation::flight_instrumentation;
+use crate::instrumentation::flight_instrumentation::{self, FlightEvent};
 use sea_orm::DatabaseConnection;
 use crate::repositories::flight_repository::FlightRepository;
 
@@ -27,20 +27,34 @@ impl FlightRecorder {
         tokio::spawn(async move {
             let rx = flight_instrumentation.receiver();
             let mut aircraft_updated = false;
-            while let Some(data) = rx.recv().await {
-                tracing::info!("Received data: {:?}", data);
+            while let Some(event) = rx.recv().await {
+                match event {
+                    FlightEvent::Data(data) => {
+                        tracing::info!("Received data: {:?}", data);
 
-                // Update aircraft and aircraft_model on first data point if not already set
-                if !aircraft_updated {
-                    if let Ok(Some(flight)) = FlightRepository::get_flight_in_progress(&db).await {
-                        if flight.aircraft.is_none() || flight.aircraft_model.is_none() {
-                            if let Err(e) = FlightRepository::update_aircraft_and_model(&db, &flight.id, &data.atc_id, &data.title).await {
-                                tracing::error!("Failed to update aircraft info: {}", e);
-                            } else {
-                                tracing::info!("Updated aircraft to: {}, aircraft_model to: {}", data.atc_id, data.title);
+                        // Update aircraft and aircraft_model on first data point if not already set
+                        if !aircraft_updated {
+                            if let Ok(Some(flight)) = FlightRepository::get_flight_in_progress(&db).await {
+                                if flight.aircraft.is_none() || flight.aircraft_model.is_none() {
+                                    if let Err(e) = FlightRepository::update_aircraft_and_model(&db, &flight.id, &data.atc_id, &data.title).await {
+                                        tracing::error!("Failed to update aircraft info: {}", e);
+                                    } else {
+                                        tracing::info!("Updated aircraft to: {}, aircraft_model to: {}", data.atc_id, data.title);
+                                    }
+                                }
+                                aircraft_updated = true;
                             }
                         }
-                        aircraft_updated = true;
+                    }
+                    FlightEvent::SimEnded => {
+                        tracing::info!("Sim ended, ending flight");
+                        if let Ok(Some(flight)) = FlightRepository::get_flight_in_progress(&db).await {
+                            if let Err(e) = FlightRepository::end_flight(&db, &flight.id).await {
+                                tracing::error!("Failed to end flight: {}", e);
+                            } else {
+                                tracing::info!("Flight ended: {}", flight.id);
+                            }
+                        }
                     }
                 }
             }

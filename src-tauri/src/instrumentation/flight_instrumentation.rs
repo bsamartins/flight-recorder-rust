@@ -4,12 +4,18 @@ use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
 use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 
+#[derive(Debug, Clone)]
+pub enum FlightEvent {
+    Data(AirplaneData),
+    SimEnded,
+}
+
 pub struct FlightInstrumentation {
     connected: Arc<AtomicBool>,
     stop_signal: Arc<AtomicBool>,
     paused: Arc<AtomicBool>,
-    tx: tokio::sync::mpsc::Sender<AirplaneData>,
-    rx: tokio::sync::mpsc::Receiver<AirplaneData>,
+    tx: tokio::sync::mpsc::Sender<FlightEvent>,
+    rx: tokio::sync::mpsc::Receiver<FlightEvent>,
 }
 
 impl FlightInstrumentation {
@@ -59,12 +65,13 @@ impl FlightInstrumentation {
                                         Some(Notification::Object(data)) => {
                                             if let Ok(airplane_data) = AirplaneData::try_from(&data) {
                                                 tracing::debug!("{airplane_data:?}");
-                                                let _ = tx.try_send(airplane_data);
+                                                let _ = tx.try_send(FlightEvent::Data(airplane_data));
                                             }
                                         }
                                         Some(Notification::SystemEvent(event)) => match event {
                                             SystemEvent::Crashed => {
                                                 tracing::debug!("Crashed");
+                                                let _ = tx.try_send(FlightEvent::SimEnded);
                                             }
                                             SystemEvent::Pause { state } => {
                                                 tracing::debug!("Pause: {}", state);
@@ -72,6 +79,9 @@ impl FlightInstrumentation {
                                             }
                                             SystemEvent::Sim { state } => {
                                                 tracing::debug!("Sim: {}", state);
+                                                if !state {
+                                                    let _ = tx.try_send(FlightEvent::SimEnded);
+                                                }
                                             }
                                             _ => {}
                                         },
@@ -111,7 +121,7 @@ impl FlightInstrumentation {
         self.paused.load(Ordering::Relaxed)
     }
 
-    pub fn receiver(&mut self) -> &mut tokio::sync::mpsc::Receiver<AirplaneData> {
+    pub fn receiver(&mut self) -> &mut tokio::sync::mpsc::Receiver<FlightEvent> {
         &mut self.rx
     }
 }
