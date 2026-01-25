@@ -29,6 +29,7 @@ tracing = "0.1.44"
 tauri-plugin-shell = "2.3.4"
 uuid = { version = "1.19.0", features = ["v4"] }
 tokio-cron-scheduler = "0.15.1"
+itertools = "0.14.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

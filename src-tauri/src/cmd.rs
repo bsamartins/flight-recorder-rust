@@ -9,6 +9,7 @@ use futures::TryFutureExt;
 use sea_orm::prelude::Uuid;
 use sea_orm::{DatabaseConnection, DbErr};
 use tauri::State;
+use itertools::Itertools;
 
 #[tauri::command]
 pub async fn create_flight<'s>(
@@ -44,19 +45,20 @@ pub async fn list_flights<'s>(
     let flights = FlightRepository::find_all(&db_connection)
         .map_err(map_db_error)
         .await?;
-    return Ok(flights
+    Ok(flights
         .into_iter()
+        .sorted_by(|a, b| b.start_timestamp.cmp(&a.start_timestamp))
         .map(|flight| flight.to_model())
-        .collect());
+        .collect())
 }
 
 #[tauri::command]
 pub async fn is_flight_in_progress<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<bool, ErrorModel> {    
-    return Ok(
+    Ok(
         FlightRepository::flight_in_progress(&db_connection)
             .map_err(map_db_error)
             .await?
-    );
+    )
 }
 
 #[tauri::command]
