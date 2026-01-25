@@ -7,7 +7,7 @@ use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 #[derive(Debug, Clone)]
 pub enum FlightEvent {
     Data(AirplaneData),
-    SimEnded,
+    FlightEnded,
 }
 
 pub struct FlightInstrumentation {
@@ -71,7 +71,7 @@ impl FlightInstrumentation {
                                         Some(Notification::SystemEvent(event)) => match event {
                                             SystemEvent::Crashed => {
                                                 tracing::debug!("Crashed");
-                                                let _ = tx.try_send(FlightEvent::SimEnded);
+                                                let _ = tx.try_send(FlightEvent::FlightEnded);
                                             }
                                             SystemEvent::Pause { state } => {
                                                 tracing::debug!("Pause: {}", state);
@@ -80,7 +80,7 @@ impl FlightInstrumentation {
                                             SystemEvent::Sim { state } => {
                                                 tracing::debug!("Sim: {}", state);
                                                 if !state {
-                                                    let _ = tx.try_send(FlightEvent::SimEnded);
+                                                    let _ = tx.try_send(FlightEvent::FlightEnded);
                                                 }
                                             }
                                             _ => {}

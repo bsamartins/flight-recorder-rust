@@ -51,7 +51,7 @@ impl FlightRecorder {
                             }
                         }
                     }
-                    FlightEvent::SimEnded => {
+                    FlightEvent::FlightEnded => {
                         tracing::info!("Sim ended, ending flight");
                         if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
                             if let Err(e) = flight_repository.end_flight(&flight.id).await {
