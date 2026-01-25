@@ -15,24 +15,23 @@ use itertools::Itertools;
 pub async fn create_flight<'s>(
     db_connection: State<'s, DatabaseConnection>,
 ) -> Result<Flight, ErrorModel> {
-    if FlightRepository::flight_in_progress(&db_connection)
+    let repo = FlightRepository::new(db_connection.inner().clone());
+    if repo
+        .flight_in_progress()
         .map_err(map_db_error)
         .await?
     {
         return Err(ErrorModel::new(-1, "Flight in progress".to_string()));
     }
-    let flight = FlightRepository::save(
-        &db_connection,
-        FlightEntity {
-            id: Uuid::new_v4().to_string(),
-            departure: Option::None,
-            arrival: Option::None,
-            aircraft: Option::None,
-            aircraft_model: Option::None,
-            start_timestamp: Utc::now(),
-            end_timestamp: Option::None,
-        },
-    )
+    let flight = repo.save(FlightEntity {
+        id: Uuid::new_v4().to_string(),
+        departure: Option::None,
+        arrival: Option::None,
+        aircraft: Option::None,
+        aircraft_model: Option::None,
+        start_timestamp: Utc::now(),
+        end_timestamp: Option::None,
+    })
     .map_err(map_db_error)
     .await?;
     Ok(flight.to_model())
@@ -42,7 +41,9 @@ pub async fn create_flight<'s>(
 pub async fn list_flights<'s>(
     db_connection: State<'s, DatabaseConnection>,
 ) -> Result<Vec<Flight>, ErrorModel> {
-    let flights = FlightRepository::find_all(&db_connection)
+    let repo = FlightRepository::new(db_connection.inner().clone());
+    let flights = repo
+        .find_all()
         .map_err(map_db_error)
         .await?;
     Ok(flights
@@ -53,9 +54,11 @@ pub async fn list_flights<'s>(
 }
 
 #[tauri::command]
-pub async fn is_flight_in_progress<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<bool, ErrorModel> {    
+pub async fn is_flight_in_progress<'s>(db_connection: State<'s, DatabaseConnection>) -> Result<bool, ErrorModel> {
+    let repo = FlightRepository::new(db_connection.inner().clone());
     Ok(
-        FlightRepository::flight_in_progress(&db_connection)
+        repo
+            .flight_in_progress()
             .map_err(map_db_error)
             .await?
     )

@@ -26,6 +26,7 @@ impl FlightRecorder {
     pub async fn start(self, mut flight_instrumentation: FlightInstrumentation, db: DatabaseConnection, app_handle: AppHandle) -> Result<Uuid, String> {
         tracing::info!("Starting recorder");
         tokio::spawn(async move {
+            let repo = FlightRepository::new(db);
             let rx = flight_instrumentation.receiver();
             let mut aircraft_updated = false;
             while let Some(event) = rx.recv().await {
@@ -35,9 +36,9 @@ impl FlightRecorder {
 
                         // Update aircraft and aircraft_model on first data point if not already set
                         if !aircraft_updated {
-                            if let Ok(Some(flight)) = FlightRepository::get_flight_in_progress(&db).await {
+                            if let Ok(Some(flight)) = repo.get_flight_in_progress().await {
                                 if flight.aircraft.is_none() || flight.aircraft_model.is_none() {
-                                    if let Err(e) = FlightRepository::update_aircraft_and_model(&db, &flight.id, &data.atc_id, &data.title).await {
+                                    if let Err(e) = repo.update_aircraft_and_model(&flight.id, &data.atc_id, &data.title).await {
                                         tracing::error!("Failed to update aircraft info: {}", e);
                                     } else {
                                         tracing::info!("Updated aircraft to: {}, aircraft_model to: {}", data.atc_id, data.title);
@@ -49,8 +50,8 @@ impl FlightRecorder {
                     }
                     FlightEvent::SimEnded => {
                         tracing::info!("Sim ended, ending flight");
-                        if let Ok(Some(flight)) = FlightRepository::get_flight_in_progress(&db).await {
-                            if let Err(e) = FlightRepository::end_flight(&db, &flight.id).await {
+                        if let Ok(Some(flight)) = repo.get_flight_in_progress().await {
+                            if let Err(e) = repo.end_flight(&flight.id).await {
                                 tracing::error!("Failed to end flight: {}", e);
                             } else {
                                 tracing::info!("Flight ended: {}", flight.id);
