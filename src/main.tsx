@@ -11,6 +11,7 @@ import { CssBaseline, CssVarsProvider } from '@mui/joy';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { QueryClient } from '@tanstack/query-core';
 import * as React from 'react';
+import { SnackbarProvider } from 'notistack';
 
 const queryClient = new QueryClient();
 
@@ -20,7 +21,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <ThemeProvider theme={theme}>
         <CssVarsProvider>
           <CssBaseline />
-          <App />
+          <SnackbarProvider maxSnack={3}>
+            <App />
+          </SnackbarProvider>
         </CssVarsProvider>
       </ThemeProvider>
     </QueryClientProvider>

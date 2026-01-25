@@ -6,6 +6,7 @@ use uuid::Uuid;
 use flight_instrumentation::FlightInstrumentation;
 use crate::instrumentation::flight_instrumentation::{self, FlightEvent};
 use sea_orm::DatabaseConnection;
+use tauri::{AppHandle, Emitter};
 use crate::repositories::flight_repository::FlightRepository;
 
 pub struct FlightRecorder {
@@ -22,7 +23,7 @@ impl FlightRecorder {
         )
     }
 
-    pub async fn start(self, mut flight_instrumentation: FlightInstrumentation, db: DatabaseConnection) -> Result<Uuid, String> {
+    pub async fn start(self, mut flight_instrumentation: FlightInstrumentation, db: DatabaseConnection, app_handle: AppHandle) -> Result<Uuid, String> {
         tracing::info!("Starting recorder");
         tokio::spawn(async move {
             let rx = flight_instrumentation.receiver();
@@ -53,6 +54,11 @@ impl FlightRecorder {
                                 tracing::error!("Failed to end flight: {}", e);
                             } else {
                                 tracing::info!("Flight ended: {}", flight.id);
+                                let aircraft_model = flight.aircraft_model.unwrap_or_else(|| "Unknown Aircraft".to_string());
+                                let _ = app_handle.emit("flight-ended", serde_json::json!({
+                                    "flightId": flight.id,
+                                    "aircraftModel": aircraft_model,
+                                }));
                             }
                         }
                     }

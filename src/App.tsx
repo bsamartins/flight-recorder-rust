@@ -2,8 +2,11 @@ import { Box } from '@mui/joy';
 import SideBar from './components/SideBar';
 import Header from './components/Header.tsx';
 import MyFlights from './components/MyFlights.tsx';
+import { useFlightEndedEvent } from './hooks/useFlightEndedEvent.ts';
 
 function App() {
+  useFlightEndedEvent();
+
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
