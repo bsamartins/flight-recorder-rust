@@ -59,6 +59,7 @@ export default function Header() {
           userSelect: 'none',
         },
       }}
+      data-tauri-drag-region
       onDoubleClick={() => toggleMaximize()}
     >
       <GlobalStyles
