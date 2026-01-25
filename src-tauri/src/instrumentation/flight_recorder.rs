@@ -94,7 +94,7 @@ impl FlightRecorder {
     }
 
     fn execute(uuid: Uuid, _scheduler: JobScheduler) {
-        tracing::info!("Executing task {uuid}")
+        tracing::debug!("Executing task {uuid}")
     }
 }
 
