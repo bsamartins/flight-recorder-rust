@@ -1,7 +1,7 @@
-import {atom, useAtom} from "jotai";
-import {isFlightInProgress, listFlights as listFlightsCommand, isSimulatorPaused} from "../commands";
-import {atomWithQuery} from "jotai-tanstack-query";
-import {Flight} from "../bindings/Flight.ts";
+import {atom, useAtom} from 'jotai';
+import {isFlightInProgress, listFlights as listFlightsCommand, isSimulatorPaused} from '../commands';
+import {atomWithQuery} from 'jotai-tanstack-query';
+import {Flight} from '../bindings/Flight.ts';
 
 export const selectedFlightAtom = atom<Flight | null>(null);
 
