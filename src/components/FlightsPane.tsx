@@ -35,7 +35,8 @@ export default function FlightsPane(props: FlightsPaneProps) {
         borderRight: '1px solid',
         borderColor: 'divider',
         height: 'calc(100dvh - var(--Header-height))',
-        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
         px: 2,
       }}
     >
@@ -75,6 +76,8 @@ export default function FlightsPane(props: FlightsPaneProps) {
       <List
         sx={{
           py: 0,
+          flex: 1,
+          overflowY: 'auto',
           '--ListItem-paddingY': '0.75rem',
           '--ListItem-paddingX': '1rem',
           '& .MuiListItem-root:not(:last-child)': {
