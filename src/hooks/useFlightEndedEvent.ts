@@ -16,7 +16,7 @@ export function useFlightEndedEvent() {
     let unlisten: (() => void) | null = null;
 
     const setupListener = async () => {
-      unlisten = await listen<FlightEndedPayload>('flight-completed', (event) => {
+      unlisten = await listen<FlightEndedPayload>('flight-ended', (event) => {
         console.log('Flight completed event received:', event);
         const { aircraftModel } = event.payload;
         enqueueSnackbar(`Flight Completed: ${aircraftModel}`, {
