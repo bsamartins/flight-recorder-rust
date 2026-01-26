@@ -8,8 +8,8 @@ import { useIsSimulatorPaused, useIsFlightInProgress } from '../state/flights';
 
 export default function Status() {
   const [instrumentationConnected, setInstrumentationConnected] = useState<boolean | null>(null);
-  const [{ data: simulatorPaused = true }] = useIsSimulatorPaused();
-  const [{ data: flightInProgress }] = useIsFlightInProgress();
+  const { data: simulatorPaused = true } = useIsSimulatorPaused();
+  const { data: flightInProgress } = useIsFlightInProgress();
 
   useEffect(() => {
     invoke<boolean>('is_instrumentation_connected').then(setInstrumentationConnected);

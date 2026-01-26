@@ -19,7 +19,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
   const { flights } = props;
   const { refetch: refetchFlights } = useListFlights();
 
-  const [{ data: isFlightInProgress, isLoading }] = useIsFlightInProgress();
+  const { data: isFlightInProgress, isPending } = useIsFlightInProgress();
   const createMutation = useMutation({
     mutationFn: () => createFlight(),
   });
@@ -95,7 +95,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
       <Button
         sx={{ mt: 1.5 }}
         onClick={() => onCreateFlight()}
-        disabled={isFlightInProgress || isLoading}
+        disabled={isFlightInProgress || isPending}
       >
         Create Flight
       </Button>
