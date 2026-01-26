@@ -15,22 +15,20 @@ export default function Status() {
     invoke<boolean>('is_instrumentation_connected').then(setInstrumentationConnected);
   }, []);
 
-  if (instrumentationConnected === false) {
-    return (
-      <LinkOffIcon sx={{ color: 'var(--joy-palette-neutral-400)' }} titleAccess='Not connected' />
-    );
-  }
-
-  if (instrumentationConnected === true && flightInProgress) {
-    if (simulatorPaused) {
-      return <PauseIcon color='warning' titleAccess='Recording - paused' />;
+  if (instrumentationConnected) {
+    if (flightInProgress) {
+      if (simulatorPaused) {
+        return <PauseIcon color='warning' titleAccess='Recording - paused' />;
+      }
+      return <FiberManualRecordIcon color='error' titleAccess='Recording' />;
+    } else {
+      if (simulatorPaused) {
+        return <LinkIcon color='warning' titleAccess='Paused' />;
+      }
+      return <LinkIcon color='success' titleAccess='Connected' />;
     }
-    return <FiberManualRecordIcon color='error' titleAccess='Recording' />;
   }
-
-  if (instrumentationConnected === true && !flightInProgress) {
-    return <LinkIcon color='success' titleAccess='Connected' />;
-  }
-
-  return null;
+  return (
+    <LinkOffIcon sx={{ color: 'var(--joy-palette-neutral-400)' }} titleAccess='Not connected' />
+  );
 }
