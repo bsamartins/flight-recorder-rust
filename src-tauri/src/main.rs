@@ -26,12 +26,11 @@ mod state;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let filter = EnvFilter::from_default_env();
-        // .add_directive("sqlx::query=error".parse()?);
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("warn,flight_recorder_rust=info"));
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
-        .with_max_level(Level::INFO)
         .init();
 
     let _ = tauri::Builder::default()
