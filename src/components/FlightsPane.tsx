@@ -55,6 +55,14 @@ export default function FlightsPane(props: FlightsPaneProps) {
         >
           Flights
         </Typography>
+        <Button
+          onClick={() => onCreateFlight()}
+          disabled={isFlightInProgress || isPending}
+          variant='outlined'
+          size='sm'
+        >
+          Create Flight
+        </Button>
       </Stack>
       <Box sx={{ pb: 1.5 }}>
         <Input
@@ -92,13 +100,6 @@ export default function FlightsPane(props: FlightsPaneProps) {
           <FlightListItem key={flight.id} flight={flight} />
         ))}
       </List>
-      <Button
-        sx={{ mt: 1.5 }}
-        onClick={() => onCreateFlight()}
-        disabled={isFlightInProgress || isPending}
-      >
-        Create Flight
-      </Button>
     </Sheet>
   );
 }
