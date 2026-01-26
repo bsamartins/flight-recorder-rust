@@ -9,10 +9,7 @@ import MinimizeIcon from '@mui/icons-material/Minimize';
 import MaximizeIcon from '@mui/icons-material/Maximize';
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
 import CloseSharpIcon from '@mui/icons-material/CloseSharp';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useState } from 'react';
+import Status from './Status';
 
 export default function Header() {
   const maximized = useWindowMaximized();
@@ -35,12 +32,6 @@ export default function Header() {
       .then(() => console.log('closed'))
       .catch((err) => console.error(err));
   };
-
-  const [instrumentationConnected, setInstrumentationConnected] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    invoke<boolean>('is_instrumentation_connected').then(setInstrumentationConnected);
-  }, []);
 
   return (
     <Sheet
@@ -78,15 +69,8 @@ export default function Header() {
         }}
       >
         <ConnectingAirportsIcon />
-        <Typography level='title-lg' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          Flight Recorder
-          {instrumentationConnected === true && (
-            <CheckCircleIcon color='success' titleAccess='Instrumentation connected' />
-          )}
-          {instrumentationConnected === false && (
-            <CancelIcon color='error' titleAccess='Instrumentation not connected' />
-          )}
-        </Typography>
+        <Typography level='title-lg'>Flight Recorder</Typography>
+        <Status />
       </Box>
       <Box data-tauri-drag-region>&nbsp;</Box>
       <Box

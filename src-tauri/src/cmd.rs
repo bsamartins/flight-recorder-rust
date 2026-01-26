@@ -66,6 +66,11 @@ pub fn is_instrumentation_connected(state: State<Arc<FlightState>>) -> bool {
     state.is_instrumentation_connected()
 }
 
+#[tauri::command]
+pub fn is_simulator_paused(state: State<Arc<FlightState>>) -> bool {
+    state.is_paused()
+}
+
 impl FlightEntity {
     fn to_model(&self) -> Flight {
         return Flight {

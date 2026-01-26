@@ -1,5 +1,5 @@
 import {atom, useAtom} from "jotai";
-import {isFlightInProgress, listFlights as listFlightsCommand} from "../commands";
+import {isFlightInProgress, listFlights as listFlightsCommand, isSimulatorPaused} from "../commands";
 import {atomWithQuery} from "jotai-tanstack-query";
 import {Flight} from "../bindings/Flight.ts";
 
@@ -22,6 +22,15 @@ export const isFlightInProgressAtom = atomWithQuery(() => ({
     refetchIntervalInBackground: true,
 }));
 
+export const isSimulatorPausedAtom = atomWithQuery(() => ({
+    queryKey: ['is-simulator-paused'],
+    queryFn: async () => {
+        return await isSimulatorPaused()
+    },
+    refetchInterval: 1000,
+    refetchIntervalInBackground: true,
+}));
+
 export function useListFlights() {
     const [result] = useAtom(flightsAtom);
     return result
@@ -30,3 +39,5 @@ export function useListFlights() {
 export const useSelectedFlight = () => useAtom(selectedFlightAtom);
 
 export const useIsFlightInProgress = () => useAtom(isFlightInProgressAtom);
+
+export const useIsSimulatorPaused = () => useAtom(isSimulatorPausedAtom);

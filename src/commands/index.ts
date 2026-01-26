@@ -16,3 +16,7 @@ export async function createFlight(): Promise<void> {
 export async function isFlightInProgress(): Promise<boolean> {
     return await invoke("is_flight_in_progress");
 }
+
+export async function isSimulatorPaused(): Promise<boolean> {
+    return await invoke("is_simulator_paused");
+}

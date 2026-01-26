@@ -121,6 +121,10 @@ impl FlightInstrumentation {
         self.paused.load(Ordering::Relaxed)
     }
 
+    pub fn get_paused(&self) -> Arc<AtomicBool> {
+        self.paused.clone()
+    }
+
     pub fn receiver(&mut self) -> &mut tokio::sync::mpsc::Receiver<FlightEvent> {
         &mut self.rx
     }

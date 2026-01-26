@@ -43,6 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             cmd::create_flight,
             cmd::is_flight_in_progress,
             cmd::is_instrumentation_connected,
+            cmd::is_simulator_paused,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -67,6 +68,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
         match flight_instrumentation_result {
             Ok(res) => {
                 flight_state.set_instrumentation_connected(true);
+                flight_state.set_paused(res.get_paused());
                 tracing::info!("Instrumentation started");
                 tracing::info!("Starting recorder");
                 let result = setup_recorder(res, flight_repository, app_handle).await;
