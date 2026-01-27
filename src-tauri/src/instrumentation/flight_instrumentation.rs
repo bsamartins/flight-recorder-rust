@@ -50,7 +50,8 @@ impl FlightInstrumentation {
                     Ok(mut sim_connect_client) => {
                         connected.store(true, Ordering::Relaxed);
                         connect_tries = 0;
-                        let mut previous_camera_state: Option<f64> = None;
+                        let mut session_active: bool = false;
+
                         while connected.load(Ordering::Relaxed) && !stop_signal.load(Ordering::Relaxed) {
                             tracing::trace!("Next dispatch");
                             let dispatch_result = sim_connect_client.get_next_dispatch();
@@ -70,18 +71,16 @@ impl FlightInstrumentation {
 
                                                 tracing::info!("Camera state {}, is paused {:?}", airplane_data.camera_state, paused);
 
-                                                // End flight on transition from camera state 34 to 35
-                                                if let Some(prev_state) = previous_camera_state {
-                                                    if prev_state == 34.0 && airplane_data.camera_state == 35.0 {
-                                                        tracing::info!("Camera state transition 34 -> 35 detected - ending session");
-                                                        let _ = tx.try_send(FlightEvent::SessionEnded);
-                                                    }
+                                                if session_active && airplane_data.camera_state == 12.0 {
+                                                    tracing::info!("Camera state transition 34 -> 35 detected - ending session");
+                                                    session_active = false;
+                                                    let _ = tx.try_send(FlightEvent::SessionEnded);
                                                 }
-                                                previous_camera_state = Some(airplane_data.camera_state);
 
                                                 // End flight if camera state is in [2, 5] and sim is not paused
-                                                if (airplane_data.camera_state >= 2.0 && airplane_data.camera_state <= 5.0) {
+                                                if !session_active && airplane_data.camera_state >= 2.0 && airplane_data.camera_state <= 5.0 {
                                                     tracing::info!("Session started");
+                                                    session_active = true;
                                                     let _ = tx.try_send(FlightEvent::SessionStarted);
                                                 }
 
