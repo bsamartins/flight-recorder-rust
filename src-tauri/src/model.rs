@@ -1,3 +1,4 @@
+use chrono::DateTime;
 use serde::Serialize;
 use ts_rs::TS;
 
@@ -10,6 +11,8 @@ pub struct Flight {
     pub arrival: Option<String>,
     pub aircraft: Option<String>,
     pub aircraft_model: Option<String>,
+    pub start: String,
+    pub end: Option<String>,
 }
 
 #[derive(Serialize, TS, PartialEq, Eq, Hash, Clone)]

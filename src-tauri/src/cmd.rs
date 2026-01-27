@@ -79,6 +79,8 @@ impl FlightEntity {
             arrival: self.arrival.clone(),
             aircraft: self.aircraft.clone(),
             aircraft_model: self.aircraft_model.clone(),
+            start: self.start_timestamp.to_rfc3339(),
+            end: self.end_timestamp.map(|end| end.to_rfc3339()),
         };
     }
 }

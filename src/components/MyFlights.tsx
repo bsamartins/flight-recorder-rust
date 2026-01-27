@@ -1,9 +1,9 @@
-import Sheet from '@mui/joy/Sheet'
-import FlightsPane from './FlightsPane.tsx'
-import { useListFlights } from '../state/flights.ts'
+import Sheet from '@mui/joy/Sheet';
+import FlightsPane from './FlightsPane.tsx';
+import { useListFlights } from '../state/flights.ts';
 
 export default function MyFlights() {
-  const { data: flights = [] } = useListFlights()
+  const { data: flights = [] } = useListFlights();
   return (
     <Sheet
       sx={{
@@ -13,7 +13,7 @@ export default function MyFlights() {
         display: 'grid',
         gridTemplateColumns: {
           xs: '1fr',
-          sm: 'minmax(min-content, min(30%, 400px)) 1fr',
+          sm: '350px',
         },
       }}
     >
@@ -33,5 +33,5 @@ export default function MyFlights() {
         <FlightsPane flights={flights} />
       </Sheet>
     </Sheet>
-  )
+  );
 }
