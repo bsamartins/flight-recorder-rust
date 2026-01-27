@@ -27,7 +27,7 @@ mod state;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new("warn,flight_recorder_rust=info"));
+        .unwrap_or_else(|_| EnvFilter::new("warn,flight_recorder_rust=debug"));
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
