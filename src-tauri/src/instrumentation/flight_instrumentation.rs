@@ -7,7 +7,8 @@ use simconnect_sdk::{Notification, SimConnect, SimConnectObject, SystemEvent};
 #[derive(Debug, Clone)]
 pub enum FlightEvent {
     Data(AirplaneData),
-    FlightEnded,
+    SessionStarted,
+    SessionEnded,
 }
 
 pub struct FlightInstrumentation {
@@ -49,6 +50,7 @@ impl FlightInstrumentation {
                     Ok(mut sim_connect_client) => {
                         connected.store(true, Ordering::Relaxed);
                         connect_tries = 0;
+                        let mut previous_camera_state: Option<f64> = None;
                         while connected.load(Ordering::Relaxed) && !stop_signal.load(Ordering::Relaxed) {
                             tracing::trace!("Next dispatch");
                             let dispatch_result = sim_connect_client.get_next_dispatch();
@@ -65,13 +67,31 @@ impl FlightInstrumentation {
                                         Some(Notification::Object(data)) => {
                                             if let Ok(airplane_data) = AirplaneData::try_from(&data) {
                                                 tracing::debug!("{airplane_data:?}");
+
+                                                tracing::info!("Camera state {}, is paused {:?}", airplane_data.camera_state, paused);
+
+                                                // End flight on transition from camera state 34 to 35
+                                                if let Some(prev_state) = previous_camera_state {
+                                                    if prev_state == 34.0 && airplane_data.camera_state == 35.0 {
+                                                        tracing::info!("Camera state transition 34 -> 35 detected - ending session");
+                                                        let _ = tx.try_send(FlightEvent::SessionEnded);
+                                                    }
+                                                }
+                                                previous_camera_state = Some(airplane_data.camera_state);
+
+                                                // End flight if camera state is in [2, 5] and sim is not paused
+                                                if (airplane_data.camera_state >= 2.0 && airplane_data.camera_state <= 5.0) {
+                                                    tracing::info!("Session started");
+                                                    let _ = tx.try_send(FlightEvent::SessionStarted);
+                                                }
+
                                                 let _ = tx.try_send(FlightEvent::Data(airplane_data));
                                             }
                                         }
                                         Some(Notification::SystemEvent(event)) => match event {
                                             SystemEvent::Crashed => {
                                                 tracing::debug!("Crashed");
-                                                let _ = tx.try_send(FlightEvent::FlightEnded);
+                                                let _ = tx.try_send(FlightEvent::SessionEnded);
                                             }
                                             SystemEvent::Pause { state } => {
                                                 tracing::debug!("Pause: {}", state);
@@ -80,7 +100,7 @@ impl FlightInstrumentation {
                                             SystemEvent::Sim { state } => {
                                                 tracing::debug!("Sim: {}", state);
                                                 if !state {
-                                                    let _ = tx.try_send(FlightEvent::FlightEnded);
+                                                    let _ = tx.try_send(FlightEvent::SessionEnded);
                                                 }
                                             }
                                             _ => {}
@@ -134,6 +154,10 @@ impl FlightInstrumentation {
 #[simconnect(period = "second")]
 #[allow(dead_code)]
 pub struct AirplaneData {
+    #[simconnect(name = "CAMERA STATE")]
+    pub camera_state: f64,
+    #[simconnect(name = "SIM ON GROUND")]
+    pub sim_on_ground: f64,
     #[simconnect(name = "TITLE")]
     pub title: String,
     #[simconnect(name = "CATEGORY")]
@@ -160,14 +184,12 @@ pub struct AirplaneData {
     pub ground_velocity: f64,
     #[simconnect(name = "VERTICAL SPEED", unit = "feet per minute")]
     pub vertical_speed: f64,
-    #[simconnect(name = "FUEL TOTAL CAPACITY", unit = "gallons")]
-    pub fuel_total_capacity: f64,
-    #[simconnect(name = "FUEL TOTAL QUANTITY", unit = "gallons")]
-    pub fuel_total_quantity: f64,
-    #[simconnect(name = "FUEL TOTAL QUANTITY WEIGHT", unit = "pounds")]
-    pub fuel_total_quantity_weight: f64,
-    #[simconnect(name = "SIM ON GROUND")]
-    pub sim_on_ground: bool,
-    #[simconnect(name = "CAMERA STATE")]
-    pub camera_state: f64,
+    #[simconnect(name = "HEADING INDICATOR", unit = "degrees")]
+    pub heading_indictor: f64,
+    // #[simconnect(name = "FUEL TOTAL CAPACITY", unit = "liters")]
+    // pub fuel_total_capacity: f64,
+    // #[simconnect(name = "FUEL TOTAL QUANTITY", unit = "liters")]
+    // pub fuel_total_quantity: f64,
+    // #[simconnect(name = "FUEL TOTAL QUANTITY WEIGHT", unit = "pounds")]
+    // pub fuel_total_quantity_weight: f64,
 }
