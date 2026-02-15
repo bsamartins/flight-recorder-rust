@@ -1,5 +1,6 @@
 import { Map } from 'react-map-gl/maplibre';
 import { Box } from '@mui/joy';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 export default function MapView() {
   return (
@@ -7,9 +8,9 @@ export default function MapView() {
       <Map
         mapStyle='https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
         initialViewState={{
-          latitude: 37.8,
-          longitude: -122.4,
-          zoom: 10,
+          latitude: 0,
+          longitude: 0,
+          zoom: 0,
         }}
       />
     </Box>
