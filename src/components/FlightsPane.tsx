@@ -100,6 +100,18 @@ export default function FlightsPane(props: FlightsPaneProps) {
             },
           },
           minHeight: 0,
+          flex: 1,
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgba(255, 255, 255, 0.3)',
+            borderRadius: '4px',
+          },
+          'scrollbar-color': 'rgba(255, 255, 255, 0.3) transparent',
         }}
       >
         {flights.map((flight) => (
