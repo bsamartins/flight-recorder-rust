@@ -12,6 +12,7 @@ export default function MapView() {
           longitude: 0,
           zoom: 0,
         }}
+        attributionControl={false}
       />
     </Box>
   );
