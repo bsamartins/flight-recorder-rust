@@ -9,7 +9,7 @@ function App() {
   useFlightEndedEvent();
 
   return (
-    <Box sx={{ height: '100dvh' }}>
+    <Box sx={{ position: 'relative', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
       <Box
         sx={{
           position: 'absolute',
@@ -17,13 +17,14 @@ function App() {
           left: 0,
           right: 0,
           bottom: 0,
+          zIndex: 0,
         }}
       >
         <MapView />
       </Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100dvh', position: 'relative', zIndex: 1 }}>
         <Header />
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: 'flex', flex: 1 }}>
           <SideBar />
           <Box component='main' className='MainContent' sx={{ flex: 1 }}>
             <MyFlights />
