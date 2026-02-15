@@ -11,6 +11,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.2.7",
+    "@deck.gl/geo-layers": "^9.2.7",
+    "@deck.gl/layers": "^9.2.7",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fontsource/inter": "^5.2.8",
@@ -23,11 +26,13 @@
     "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/plugin-shell": "^2.3.4",
     "dayjs": "^1.11.19",
+    "deck.gl": "^9.2.7",
     "jotai": "^2.16.2",
     "jotai-tanstack-query": "^0.11.0",
     "notistack": "^3.0.2",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "react-map-gl": "^8.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",

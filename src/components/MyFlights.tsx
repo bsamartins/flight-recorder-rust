@@ -7,14 +7,9 @@ export default function MyFlights() {
   return (
     <Sheet
       sx={{
+        backgroundColor: 'yellow',
         flex: 1,
-        width: '100%',
-        mx: 'auto',
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          sm: '350px',
-        },
+        width: '350px',
       }}
     >
       <Sheet
