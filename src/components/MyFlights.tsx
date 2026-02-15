@@ -7,22 +7,25 @@ export default function MyFlights() {
   return (
     <Sheet
       sx={{
-        backgroundColor: 'yellow',
+        display: 'flex',
+        flexDirection: 'column',
         flex: 1,
         width: '350px',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
+        minHeight: 0,
+        m: 2,
+        borderRadius: 'var(--joy-radius-sm)',
       }}
     >
       <Sheet
         sx={{
-          position: { xs: 'fixed', sm: 'sticky' },
-          transform: {
-            xs: 'translateX(calc(100% * (var(--MessagesPane-slideIn, 0) - 1)))',
-            sm: 'none',
-          },
-          transition: 'transform 0.4s, width 0.4s',
-          zIndex: 100,
+          display: 'flex',
+          flexDirection: 'column',
           width: '100%',
-          top: 52,
+          backgroundColor: 'transparent',
+          flex: 1,
+          minHeight: 0,
         }}
       >
         <FlightsPane flights={flights} />

@@ -32,12 +32,12 @@ export default function FlightsPane(props: FlightsPaneProps) {
   return (
     <Sheet
       sx={{
-        borderRight: '1px solid',
-        borderColor: 'divider',
-        height: 'calc(100dvh - var(--Header-height))',
         display: 'flex',
         flexDirection: 'column',
+        flex: 1,
         px: 2,
+        backgroundColor: 'transparent',
+        minHeight: 0,
       }}
     >
       <Stack
@@ -47,6 +47,9 @@ export default function FlightsPane(props: FlightsPaneProps) {
         justifyContent='space-between'
         pt={2}
         pb={1.5}
+        sx={{
+          backgroundColor: 'transparent',
+        }}
       >
         <Typography
           fontSize={{ xs: 'md', md: 'lg' }}
@@ -76,7 +79,6 @@ export default function FlightsPane(props: FlightsPaneProps) {
       <List
         sx={{
           py: 0,
-          flex: 1,
           overflowY: 'auto',
           '--ListItem-paddingY': '0.75rem',
           '--ListItem-paddingX': '1rem',
@@ -97,6 +99,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
               borderColor: (theme) => theme.palette.primary.solidColor,
             },
           },
+          minHeight: 0,
         }}
       >
         {flights.map((flight) => (

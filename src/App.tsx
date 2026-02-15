@@ -12,7 +12,7 @@ function App() {
     <Box
       sx={{
         height: '100dvh',
-        width: '100vw',
+        width: '100dvw',
       }}
     >
       <Box
@@ -31,12 +31,21 @@ function App() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
+          height: '100dvh',
+          width: '100vw',
         }}
       >
         <Header />
-        <Box sx={{ display: 'flex', flex: 1 }}>
+        <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
           <SideBar />
-          <Box component='main' className='MainContent' sx={{ flex: 1 }}>
+          <Box
+            component='main'
+            className='MainContent'
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             <MyFlights />
           </Box>
         </Box>
