@@ -43,9 +43,8 @@ export default function Header() {
         height: 'var(--Header-height)',
         p: 2,
         gap: 1,
-        borderBottom: '1px solid',
-        borderColor: 'background.level1',
-        boxShadow: 'sm',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
         '& > *': {
           userSelect: 'none',
         },

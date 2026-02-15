@@ -21,8 +21,8 @@ export default function Sidebar() {
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
-        borderRight: '1px solid',
-        borderColor: 'divider',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
       }}
     >
       <GlobalStyles
