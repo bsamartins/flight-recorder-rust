@@ -6,27 +6,29 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Feature } from 'geojson';
 import { getPlaneImageData } from './PlaneIcon.ts';
 import { MapRef } from 'react-map-gl/mapbox-legacy';
+import MapControls from './MapControls.tsx';
 
 export default function MapView() {
   const position = useFlightPosition();
   const mapRef = useRef<MapRef>(null);
   const planeColor = '#0080FF'; // Change this to customize plane icon color
+  const [isFollowing, setIsFollowing] = useState(true);
   const [viewState, setViewState] = useState({
     latitude: 0,
     longitude: 0,
     zoom: 4,
   });
 
-  // Update view to follow plane when position changes
+  // Update view to follow plane when position changes (only if following is enabled)
   useEffect(() => {
-    if (position) {
+    if (position && isFollowing) {
       setViewState((prev) => ({
         ...prev,
         latitude: position.latitude,
         longitude: position.longitude,
       }));
     }
-  }, [position?.latitude, position?.longitude]);
+  }, [position?.latitude, position?.longitude, isFollowing]);
 
   const geojson: GeoJSON.GeoJSON = useMemo(() => {
     let features: Array<Feature> = [];
@@ -54,7 +56,7 @@ export default function MapView() {
   }, [position]);
 
   return (
-    <Box sx={{ width: '100%', height: '100%' }}>
+    <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
       <Map
         ref={mapRef as any}
         mapStyle='https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
@@ -87,6 +89,7 @@ export default function MapView() {
           />
         </Source>
       </Map>
+      <MapControls isFollowing={isFollowing} onFollowToggle={setIsFollowing} />
     </Box>
   );
 }
