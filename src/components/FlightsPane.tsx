@@ -111,7 +111,7 @@ export default function FlightsPane(props: FlightsPaneProps) {
             background: 'rgba(255, 255, 255, 0.3)',
             borderRadius: '4px',
           },
-          'scrollbar-color': 'rgba(255, 255, 255, 0.3) transparent',
+          scrollbarColor: 'rgba(255, 255, 255, 0.3) transparent',
         }}
       >
         {flights.map((flight) => (
