@@ -2,8 +2,8 @@ import { Box } from '@mui/joy';
 import SideBar from './components/SideBar';
 import Header from './components/Header.tsx';
 import MyFlights from './components/MyFlights.tsx';
-import MapView from './components/MapView.tsx';
 import { useFlightEndedEvent } from './hooks/useFlightEndedEvent.ts';
+import MapView from './components/map/MapView.tsx';
 
 function App() {
   useFlightEndedEvent();

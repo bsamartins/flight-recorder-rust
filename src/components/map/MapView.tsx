@@ -1,7 +1,7 @@
 import { Layer, Map, Source } from 'react-map-gl/maplibre';
 import { Box } from '@mui/joy';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useFlightPosition } from '../hooks/useFlightPosition.ts';
+import { useFlightPosition } from '../../hooks/useFlightPosition.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Feature } from 'geojson';
 import { getPlaneImageData } from './PlaneIcon.ts';
