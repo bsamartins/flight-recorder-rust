@@ -1,5 +1,7 @@
-import { EventCallback, EventName, listen } from '@tauri-apps/api/event';
+import { EventCallback, EventName, listen, Event } from '@tauri-apps/api/event';
 import { useEffect } from 'react';
+
+export type TauriEvent<T> = Event<T>;
 
 export const useTauriListen = <T>(event: EventName, handler: EventCallback<T>) => {
   useEffect(() => {

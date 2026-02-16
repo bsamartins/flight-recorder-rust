@@ -37,6 +37,15 @@ impl FlightRecorder {
                     FlightEvent::Data(data) => {
                         tracing::info!("Received data: {:?}", data);
 
+                        // Emit position data to frontend
+                        let _ = app_handle.emit("flight-position", serde_json::json!({
+                            "latitude": data.lat,
+                            "longitude": data.lon,
+                            "heading": data.heading_indictor,
+                            "altitude": data.altitude,
+                            "airspeed": data.airspeed_indicated,
+                        }));
+
                         // Update aircraft and aircraft_model on first data point if not already set
                         if !aircraft_updated {
                             if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
