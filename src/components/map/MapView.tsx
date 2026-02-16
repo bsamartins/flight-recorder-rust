@@ -58,7 +58,7 @@ export default function MapView() {
       <Map
         ref={mapRef as any}
         mapStyle='https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
-        initialViewState={viewState}
+        {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
         onLoad={(e) => {
           const map = e.target;
