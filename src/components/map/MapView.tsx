@@ -77,10 +77,12 @@ export default function MapView() {
           <Layer
             id='plane-icon'
             type='symbol'
+            filter={['==', ['geometry-type'], 'Point']}
             layout={{
               'icon-image': 'plane',
               'icon-size': 1.5,
               'icon-rotate': ['get', 'heading'],
+              'icon-rotation-alignment': 'map',
               'icon-allow-overlap': true,
             }}
             paint={{
