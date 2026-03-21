@@ -2,6 +2,7 @@ import { Layer, Map, Source } from 'react-map-gl/maplibre';
 import { Box } from '@mui/joy';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useFlightPosition } from '../../hooks/useFlightPosition.ts';
+import { useFlightPath, pathToGeoJSON } from '../../hooks/useFlightPath.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Feature } from 'geojson';
 import { getPlaneImageData } from './PlaneIcon.ts';
@@ -10,6 +11,7 @@ import MapControls from './MapControls.tsx';
 
 export default function MapView() {
   const position = useFlightPosition();
+  const flightPath = useFlightPath();
   const mapRef = useRef<MapRef>(null);
   const planeColor = '#0080FF'; // Change this to customize plane icon color
   const [isFollowing, setIsFollowing] = useState(true);
@@ -55,6 +57,10 @@ export default function MapView() {
     };
   }, [position]);
 
+  const pathGeojson = useMemo(() => {
+    return pathToGeoJSON(flightPath);
+  }, [flightPath]);
+
   return (
     <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
       <Map
@@ -73,6 +79,22 @@ export default function MapView() {
           image.src = dataUrl;
         }}
       >
+        <Source id='flight-path' type='geojson' data={pathGeojson}>
+          <Layer
+            id='flight-path-line'
+            type='line'
+            paint={{
+              'line-color': ['get', 'color'],
+              'line-width': 3,
+              'line-opacity': 0.8,
+            }}
+            layout={{
+              'line-cap': 'round',
+              'line-join': 'round',
+            }}
+          />
+        </Source>
+
         <Source id='flight-position' type='geojson' data={geojson}>
           <Layer
             id='plane-icon'
