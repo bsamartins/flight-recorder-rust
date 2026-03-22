@@ -12,6 +12,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { QueryClient } from '@tanstack/query-core';
 import * as React from 'react';
 import { SnackbarProvider } from 'notistack';
+import { FlightStoreProvider } from './context/FlightStoreContext.tsx';
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
         <CssVarsProvider>
           <CssBaseline />
           <SnackbarProvider maxSnack={3}>
-            <App />
+            <FlightStoreProvider>
+              <App />
+            </FlightStoreProvider>
           </SnackbarProvider>
         </CssVarsProvider>
       </ThemeProvider>
