@@ -1,7 +1,7 @@
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -49,7 +49,7 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
       }}
     >
       <ResponsiveContainer width='100%' height={300}>
-        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+        <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray='3 3' stroke='rgba(255,255,255,0.1)' />
           <XAxis
             dataKey='timestamp'
@@ -80,16 +80,7 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
               return value;
             }}
           />
-          <Line
-            type='monotone'
-            dataKey='groundAltitude'
-            stroke='#8B4513'
-            name='Ground Altitude (ft)'
-            dot={false}
-            strokeWidth={2}
-            isAnimationActive={false}
-          />
-          <Line
+          <Area
             type='monotone'
             dataKey='planeAltitude'
             stroke='#2196F3'
@@ -98,7 +89,16 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
             strokeWidth={2}
             isAnimationActive={false}
           />
-          <Line
+          <Area
+            type='monotone'
+            dataKey='groundAltitude'
+            stroke='#8B4513'
+            fill='#8B4513'
+            name='Ground Elvation (ft)'
+            dot={false}
+            isAnimationActive={false}
+          />
+          <Area
             type='monotone'
             dataKey='airspeed'
             stroke='#FFD700'
@@ -107,7 +107,7 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
             strokeWidth={2}
             isAnimationActive={false}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </Box>
   );
