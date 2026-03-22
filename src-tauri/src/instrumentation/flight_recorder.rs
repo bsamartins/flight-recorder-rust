@@ -45,8 +45,6 @@ impl FlightRecorder {
                             "latitude": data.lat,
                             "longitude": data.lon,
                             "heading": data.heading_indictor,
-                            "altitude": data.altitude,
-                            "airspeed": data.airspeed_indicated,
                         }));
 
                         // Save flight data to database
@@ -70,18 +68,7 @@ impl FlightRecorder {
                     }
                     FlightEvent::SessionEnded => {
                         tracing::info!("Sim ended, ending flight");
-                        if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
-                            if let Err(e) = flight_repository.end_flight(&flight.id).await {
-                                tracing::error!("Failed to end flight: {}", e);
-                            } else {
-                                tracing::info!("Flight ended: {}", flight.id);
-                                let aircraft_model = flight.aircraft_model.unwrap_or_else(|| "Unknown Aircraft".to_string());
-                                let _ = app_handle.emit("flight-ended", serde_json::json!({
-                                    "flightId": flight.id,
-                                    "aircraftModel": aircraft_model,
-                                }));
-                            }
-                        }
+                        Self::handle_session_end(&flight_repository, &app_handle).await;
                     }
                 }
             }
@@ -112,6 +99,29 @@ impl FlightRecorder {
             }
         }
         Ok(uuid)
+    }
+
+    async fn handle_session_end(flight_repository: &FlightRepository, app_handle: &AppHandle) {
+        if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
+            match flight_repository.end_flight(&flight.id).await {
+                Ok(res) => {
+                    match res {
+                        Some(flight) => {
+                            tracing::info!("Flight ended: {} - {:?}", flight.id, flight.end_timestamp);
+                            let _ = app_handle.emit("flight-ended", serde_json::json!({
+                                                "flight": flight.to_model(),
+                                            }));
+                        }
+                        None => {
+                            tracing::error!("Failed to end flight");
+                        }
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("Failed to end flight: {}", e);
+                }
+            }
+        }
     }
 
     fn execute(uuid: Uuid, _scheduler: JobScheduler) {

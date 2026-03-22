@@ -98,8 +98,8 @@ pub async fn get_flight_data<'s>(
 }
 
 impl FlightEntity {
-    fn to_model(&self) -> Flight {
-        return Flight {
+    pub fn to_model(&self) -> Flight {
+        Flight {
             id: self.id.to_string(),
             departure: self.departure.clone(),
             arrival: self.arrival.clone(),
@@ -107,7 +107,7 @@ impl FlightEntity {
             aircraft_model: self.aircraft_model.clone(),
             start: self.start_timestamp.to_rfc3339(),
             end: self.end_timestamp.map(|end| end.to_rfc3339()),
-        };
+        }
     }
 }
 

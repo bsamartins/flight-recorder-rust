@@ -66,15 +66,16 @@ impl FlightRepository {
         Ok(())
     }
 
-    pub async fn end_flight(&self, flight_id: &str) -> Result<(), DbErr> {
+    pub async fn end_flight(&self, flight_id: &str) -> Result<Option<FlightEntity>, DbErr> {
         if let Some(flight) = Flight::find_by_id(flight_id.to_string()).one(&self.db).await? {
             if flight.end_timestamp.is_none() {
                 let mut active_flight = flight.into_active_model();
                 active_flight.end_timestamp = sea_orm::Set(Some(Utc::now()));
-                active_flight.update(&self.db).await?;
+                let result = active_flight.update(&self.db).await?;
+                return Ok(Some(result));
             }
         }
-        Ok(())
+        Ok(None)
     }
 
     pub async fn save_flight_data(&self, data: flight_data::ActiveModel) -> Result<FlightDataEntity, DbErr> {
