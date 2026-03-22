@@ -18,6 +18,9 @@ pub struct Model {
     pub indicated_airspeed: f64,
     pub true_airspeed: f64,
     pub ground_speed: f64,
+    pub vertical_speed: Option<f64>,
+    pub pitch: Option<f64>,
+    pub bank: Option<f64>,
     pub timestamp: DateTime<Utc>,
 }
 

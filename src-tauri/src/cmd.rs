@@ -92,6 +92,9 @@ pub async fn get_flight_data<'s>(
             indicated_airspeed: d.indicated_airspeed,
             true_airspeed: d.true_airspeed,
             ground_speed: d.ground_speed,
+            vertical_speed: d.vertical_speed,
+            pitch: d.pitch,
+            bank: d.bank,
             timestamp: d.timestamp.to_rfc3339(),
         })
         .collect())

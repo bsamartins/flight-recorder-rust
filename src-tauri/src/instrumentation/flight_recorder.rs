@@ -141,6 +141,11 @@ async fn record_flight_data(flight_repository: &FlightRepository, flight_id: &st
         indicated_airspeed: Set(data.airspeed_indicated),
         true_airspeed: Set(data.airspeed_true),
         ground_speed: Set(data.ground_velocity),
+        vertical_speed: Set(Some(data.vertical_speed)),
+        pitch: Set(None),
+        bank: Set(None),
+        // pitch: Set(Some(data.pitch)),
+        // bank: Set(Some(data.bank)),
         timestamp: Set(Utc::now()),
         ..Default::default()
     };
