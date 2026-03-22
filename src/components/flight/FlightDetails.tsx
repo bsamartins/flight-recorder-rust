@@ -66,7 +66,7 @@ export const FlightDetails = (props: FlightDetailsProps) => {
           Charts
         </Button>
       </ButtonGroup>
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 2 }}>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {view === 'overview' && <Box>Flight overview will be displayed here</Box>}
         {view === 'data' && (
           <>

@@ -48,7 +48,7 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
         mt: 2,
       }}
     >
-      <ResponsiveContainer width='100%' height={400}>
+      <ResponsiveContainer width='100%' height={300}>
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray='3 3' stroke='rgba(255,255,255,0.1)' />
           <XAxis
@@ -58,7 +58,12 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
             style={{ fontSize: '12px' }}
             tick={{ fill: 'white' }}
           />
-          <YAxis stroke='white' style={{ fontSize: '12px' }} tick={{ fill: 'white' }} min={0} />
+          <YAxis
+            stroke='white'
+            style={{ fontSize: '12px' }}
+            tick={{ fill: 'white' }}
+            domain={[0, 'dataMax']}
+          />
           <Tooltip
             contentStyle={{
               backgroundColor: 'rgba(0,0,0,0.85)',
