@@ -7,6 +7,8 @@ use flight_instrumentation::FlightInstrumentation;
 use crate::instrumentation::flight_instrumentation::{self, FlightEvent};
 use tauri::{AppHandle, Emitter};
 use crate::repositories::flight_repository::FlightRepository;
+use crate::database::entities::flight_data::Model as FlightDataEntity;
+use chrono::Utc;
 
 pub struct FlightRecorder {
     scheduler: JobScheduler,
@@ -48,18 +50,21 @@ impl FlightRecorder {
 
                         // Save flight data to database
                         if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
-                            if let Err(e) = flight_repository.save_flight_data(
-                                &flight.id,
-                                data.lat,
-                                data.lon,
-                                data.heading_indictor,
-                                data.altitude,
-                                data.altitude_above_ground,
-                                data.altitude_ground,
-                                data.airspeed_indicated,
-                                data.airspeed_true,
-                                data.ground_velocity,
-                            ).await {
+                            let flight_data = FlightDataEntity {
+                                id: 0, // Will be auto-generated
+                                flight_id: flight.id.clone(),
+                                latitude: data.lat,
+                                longitude: data.lon,
+                                heading: data.heading_indictor,
+                                altitude: data.altitude,
+                                altitude_above_ground: data.altitude_above_ground,
+                                ground_altitude: data.altitude_ground,
+                                indicated_airspeed: data.airspeed_indicated,
+                                true_airspeed: data.airspeed_true,
+                                ground_speed: data.ground_velocity,
+                                timestamp: Utc::now(),
+                            };
+                            if let Err(e) = flight_repository.save_flight_data(flight_data).await {
                                 tracing::error!("Failed to save flight data: {}", e);
                             }
 
