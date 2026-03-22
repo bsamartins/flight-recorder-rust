@@ -9,11 +9,16 @@ import { getPlaneImageData } from './PlaneIcon.ts';
 import { MapRef } from 'react-map-gl/mapbox-legacy';
 import MapControls from './MapControls.tsx';
 import { useSelectedFlight } from '../../state/flights.ts';
+import { useGetFlightData } from '../../hooks/useGetFlightData.ts';
 
-export default function MapView() {
-  const position = usePlanePosition();
+const MapView = () => {
+  const livePosition = usePlanePosition();
   const [selectedFlight] = useSelectedFlight();
   const flightPath = useFlightPath(selectedFlight?.id ?? '', { enabled: !!selectedFlight }) ?? [];
+  const { data: flightData = [] } = useGetFlightData(selectedFlight?.id ?? '', {
+    enabled: !!selectedFlight,
+  });
+  const lastPosition = selectedFlight ? flightData[flightData.length - 1] : livePosition;
   const mapRef = useRef<MapRef>(null);
   const planeColor = '#0080FF'; // Change this to customize plane icon color
   const [isFollowing, setIsFollowing] = useState(true);
@@ -25,30 +30,29 @@ export default function MapView() {
 
   // Update view to follow plane when position changes (only if following is enabled)
   useEffect(() => {
-    if (position && isFollowing) {
+    if (lastPosition && isFollowing) {
       setViewState((prev) => ({
         ...prev,
-        latitude: position.latitude,
-        longitude: position.longitude,
+        latitude: lastPosition.latitude,
+        longitude: lastPosition.longitude,
       }));
     }
-  }, [position?.latitude, position?.longitude, isFollowing]);
+  }, [lastPosition?.latitude, lastPosition?.longitude, isFollowing]);
 
   const geojson: GeoJSON.GeoJSON = useMemo(() => {
     let features: Array<Feature> = [];
     // Only show live plane position if no flight is selected
-    if (position && !selectedFlight) {
+    if (lastPosition) {
       features = [
         {
           type: 'Feature',
           geometry: {
             type: 'Point',
-            coordinates: [position.longitude, position.latitude],
+            coordinates: [lastPosition.longitude, lastPosition.latitude],
           },
           properties: {
-            heading: position.heading,
-            altitude: position.altitude,
-            airspeed: position.airspeed,
+            heading: lastPosition.heading,
+            altitude: lastPosition.altitude,
           },
         },
       ];
@@ -58,7 +62,7 @@ export default function MapView() {
       type: 'FeatureCollection' as const,
       features: features,
     };
-  }, [position, selectedFlight]);
+  }, [lastPosition, selectedFlight]);
 
   const pathGeojson = useMemo(() => {
     return pathToGeoJSON(flightPath);
@@ -111,7 +115,7 @@ export default function MapView() {
               'icon-allow-overlap': true,
             }}
             paint={{
-              'icon-opacity': position ? 1 : 0,
+              'icon-opacity': lastPosition ? 1 : 0,
             }}
           />
         </Source>
@@ -119,4 +123,6 @@ export default function MapView() {
       <MapControls isFollowing={isFollowing} onFollowToggle={setIsFollowing} />
     </Box>
   );
-}
+};
+
+export default MapView;
