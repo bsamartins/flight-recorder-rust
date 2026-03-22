@@ -3,7 +3,7 @@ import FlightsPane from './FlightsPane.tsx';
 import { useListFlights } from '../state/flights.ts';
 import { BlurredContainer } from './BlurContainer.tsx';
 import { useFlightStoreSelector } from '../hooks/useFlightStoreSelector.ts';
-import { FlightDetails } from './FlightDetails.tsx';
+import { FlightDetails } from './flight/FlightDetails.tsx';
 
 export default function MyFlights() {
   const { data: flights = [] } = useListFlights();

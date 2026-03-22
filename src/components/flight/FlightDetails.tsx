@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import Sheet from '@mui/joy/Sheet';
 import Button from '@mui/joy/Button';
-import { Box, IconButton } from '@mui/joy';
+import { Box, ButtonGroup, IconButton } from '@mui/joy';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Flight } from '../bindings/Flight.ts';
-import { useFlightStoreSelector } from '../hooks/useFlightStoreSelector.ts';
+import { Flight } from '../../bindings/Flight.ts';
+import { useFlightStoreSelector } from '../../hooks/useFlightStoreSelector.ts';
 import { FlightMenu } from './FlightMenu.tsx';
 
 interface FlightDetailsProps {
@@ -49,6 +49,14 @@ export const FlightDetails = (props: FlightDetailsProps) => {
         </IconButton>
         <FlightMenu flight={flight} anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />
       </Stack>
+      <ButtonGroup sx={{ display: 'flex', flex: 1, justifyContent: 'space-evenly' }}>
+        <Button variant='outlined' sx={{ flex: 1 }}>
+          Overview
+        </Button>
+        <Button variant='outlined' sx={{ flex: 1 }}>
+          Data
+        </Button>
+      </ButtonGroup>
       <Box>Flight details will be displayed here</Box>
     </Sheet>
   );

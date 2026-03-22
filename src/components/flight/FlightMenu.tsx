@@ -8,10 +8,10 @@ import ModalDialog from '@mui/joy/ModalDialog';
 import DialogTitle from '@mui/joy/DialogTitle';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogActions from '@mui/joy/DialogActions';
-import { Flight } from '../bindings/Flight.ts';
-import { deleteFlight } from '../commands';
+import { Flight } from '../../bindings/Flight.ts';
+import { deleteFlight } from '../../commands';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useFlightStoreSelector } from '../hooks/useFlightStoreSelector.ts';
+import { useFlightStoreSelector } from '../../hooks/useFlightStoreSelector.ts';
 
 interface FlightMenuProps {
   flight: Flight;
