@@ -1,4 +1,12 @@
-import { LineChart } from '@mui/x-charts/LineChart';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { Box, Typography } from '@mui/joy';
 import { FlightData } from '../../bindings/FlightData.ts';
 
@@ -17,62 +25,85 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
     );
   }
 
-  // Prepare data series
-  const groundAltitudeData = flightData.map((point) => point.groundAltitude);
-  const planeAltitudeData = flightData.map((point) => point.altitude);
-  const airspeedData = flightData.map((point) => point.indicatedAirspeed);
-  const xAxisData = flightData.map((_, index) => index);
+  // Format timestamp as HH:MM
+  const formatTime = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
+
+  // Prepare chart data with formatted timestamps
+  const chartData = flightData.map((point) => ({
+    timestamp: formatTime(point.timestamp),
+    groundAltitude: Math.round(point.groundAltitude),
+    planeAltitude: Math.round(point.altitude),
+    airspeed: Math.round(point.indicatedAirspeed * 10) / 10,
+  }));
 
   return (
     <Box
       sx={{
         width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
         mt: 2,
-        '& .MuiLineChart-root': {
-          backgroundColor: 'transparent',
-        },
       }}
     >
-      <LineChart
-        series={[
-          {
-            data: groundAltitudeData,
-            label: 'Ground Altitude (ft)',
-            color: '#8B4513',
-          },
-          {
-            data: planeAltitudeData,
-            label: 'Plane Altitude (ft)',
-            color: '#2196F3',
-          },
-          {
-            data: airspeedData,
-            label: 'Indicated Airspeed (knots)',
-            color: '#FFD700',
-          },
-        ]}
-        xAxis={[{ scaleType: 'linear', data: xAxisData, label: 'Time Index' }]}
-        width={600}
-        height={400}
-        margin={{ top: 10, bottom: 30, left: 60, right: 10 }}
-        sx={{
-          '& .MuiChartsAxis-bottom .MuiChartsAxis-tickLabelStyle': {
-            fill: 'rgba(255,255,255,0.7)',
-          },
-          '& .MuiChartsAxis-left .MuiChartsAxis-tickLabelStyle': {
-            fill: 'rgba(255,255,255,0.7)',
-          },
-          '& .MuiChartsAxis-bottom .MuiChartsAxis-line': {
-            stroke: 'rgba(255,255,255,0.2)',
-          },
-          '& .MuiChartsAxis-left .MuiChartsAxis-line': {
-            stroke: 'rgba(255,255,255,0.2)',
-          },
-          '& .MuiChartsLegend-root': {
-            color: 'rgba(255,255,255,0.8)',
-          },
-        }}
-      />
+      <ResponsiveContainer width='100%' height={400}>
+        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+          <CartesianGrid strokeDasharray='3 3' stroke='rgba(255,255,255,0.1)' />
+          <XAxis
+            dataKey='timestamp'
+            stroke='white'
+            label={{ position: 'insideBottomRight', offset: -5 }}
+            style={{ fontSize: '12px' }}
+            tick={{ fill: 'white' }}
+          />
+          <YAxis stroke='white' style={{ fontSize: '12px' }} tick={{ fill: 'white' }} min={0} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '4px',
+              color: 'white',
+              fontSize: '12px',
+            }}
+            labelStyle={{ color: 'white' }}
+            formatter={(value) => {
+              if (typeof value === 'number') {
+                return value.toFixed(1);
+              }
+              return value;
+            }}
+          />
+          <Line
+            type='monotone'
+            dataKey='groundAltitude'
+            stroke='#8B4513'
+            name='Ground Altitude (ft)'
+            dot={false}
+            strokeWidth={2}
+            isAnimationActive={false}
+          />
+          <Line
+            type='monotone'
+            dataKey='planeAltitude'
+            stroke='#2196F3'
+            name='Plane Altitude (ft)'
+            dot={false}
+            strokeWidth={2}
+            isAnimationActive={false}
+          />
+          <Line
+            type='monotone'
+            dataKey='airspeed'
+            stroke='#FFD700'
+            name='Indicated Airspeed (knots)'
+            dot={false}
+            strokeWidth={2}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </Box>
   );
 };
