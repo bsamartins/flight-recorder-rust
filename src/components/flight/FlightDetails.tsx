@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Sheet from '@mui/joy/Sheet';
 import Button from '@mui/joy/Button';
 import { Box, ButtonGroup, IconButton } from '@mui/joy';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
@@ -21,9 +20,12 @@ export const FlightDetails = (props: FlightDetailsProps) => {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [view, setView] = useState<'overview' | 'data'>('overview');
   const flightData = useFlightStoreSelector((s) => s.flightData);
+  const lastFlightDataPoint = flightData.length ? flightData[flightData.length - 1] : null;
 
   return (
-    <Sheet
+    <Stack
+      direction='column'
+      spacing={2}
       sx={{
         display: 'flex',
         flex: 1,
@@ -70,10 +72,39 @@ export const FlightDetails = (props: FlightDetailsProps) => {
         {view === 'overview' && <Box>Flight overview will be displayed here</Box>}
         {view === 'data' && (
           <>
+            <Box>
+              <DataPoint
+                label='Altitude (ft)'
+                value={round(lastFlightDataPoint?.altitude)?.toString() ?? '-'}
+              />
+              <DataPoint
+                label='Vertical Speed (fpm)'
+                value={round(lastFlightDataPoint?.verticalSpeed)?.toString() ?? '-'}
+              />
+              <DataPoint
+                label='Pitch'
+                value={round(lastFlightDataPoint?.pitch)?.toString() ?? '-'}
+              />
+              <DataPoint label='Bank' value={round(lastFlightDataPoint?.bank)?.toString() ?? '-'} />
+            </Box>
             <FlightCharts flightData={flightData} />
           </>
         )}
       </Box>
-    </Sheet>
+    </Stack>
   );
+};
+
+const DataPoint = ({ label, value }: { label: string; value: string }) => {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <Typography level='title-lg'>{value}</Typography>
+      <Typography level='body-sm'>{label}</Typography>
+    </Box>
+  );
+};
+
+const round = (number?: number | null) => {
+  if (number === undefined || number === null) return undefined;
+  return Math.round(number);
 };
