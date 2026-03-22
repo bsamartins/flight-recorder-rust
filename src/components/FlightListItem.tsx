@@ -5,9 +5,9 @@ import Stack from '@mui/joy/Stack';
 import Typography from '@mui/joy/Typography';
 import { toggleMessagesPane } from '../utils';
 import { Flight } from '../bindings/Flight.ts';
-import { useSelectedFlight } from '../state/flights.ts';
 import dayjs, { Dayjs } from 'dayjs';
 import duration, { Duration } from 'dayjs/plugin/duration';
+import { useFlightStoreSelector } from '../hooks/useFlightStoreSelector.ts';
 
 dayjs.extend(duration);
 
@@ -16,7 +16,8 @@ type FlightListItemProps = ListItemButtonProps & {
 };
 
 export default function FlightListItem(props: FlightListItemProps) {
-  const [selectedFlight, setSelectedFlight] = useSelectedFlight();
+  const setSelectedFlight = useFlightStoreSelector((s) => s.setSelectedFlight);
+  const selectedFlight = useFlightStoreSelector((s) => s.selectedFlight);
   const { flight } = props;
   const selected = selectedFlight?.id === flight.id;
   const startDate = dayjs(flight.start);

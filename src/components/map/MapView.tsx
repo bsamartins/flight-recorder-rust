@@ -2,23 +2,16 @@ import { Layer, Map, Source } from 'react-map-gl/maplibre';
 import { Box } from '@mui/joy';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { usePlanePosition } from '../../hooks/usePlanePosition.ts';
-import { useFlightPath, pathToGeoJSON } from '../../hooks/useFlightPath.ts';
+import { pathToGeoJSON, useFlightPath } from '../../hooks/useFlightPath.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Feature } from 'geojson';
 import { getPlaneImageData } from './PlaneIcon.ts';
 import { MapRef } from 'react-map-gl/mapbox-legacy';
 import MapControls from './MapControls.tsx';
-import { useSelectedFlight } from '../../state/flights.ts';
-import { useGetFlightData } from '../../hooks/useGetFlightData.ts';
 
 const MapView = () => {
-  const livePosition = usePlanePosition();
-  const [selectedFlight] = useSelectedFlight();
-  const flightPath = useFlightPath(selectedFlight?.id ?? '', { enabled: !!selectedFlight }) ?? [];
-  const { data: flightData = [] } = useGetFlightData(selectedFlight?.id ?? '', {
-    enabled: !!selectedFlight,
-  });
-  const lastPosition = selectedFlight ? flightData[flightData.length - 1] : livePosition;
+  const planePosition = usePlanePosition();
+  const flightPath = useFlightPath();
   const mapRef = useRef<MapRef>(null);
   const planeColor = '#0080FF'; // Change this to customize plane icon color
   const [isFollowing, setIsFollowing] = useState(true);
@@ -30,29 +23,28 @@ const MapView = () => {
 
   // Update view to follow plane when position changes (only if following is enabled)
   useEffect(() => {
-    if (lastPosition && isFollowing) {
+    if (planePosition && isFollowing) {
       setViewState((prev) => ({
         ...prev,
-        latitude: lastPosition.latitude,
-        longitude: lastPosition.longitude,
+        latitude: planePosition.latitude,
+        longitude: planePosition.longitude,
       }));
     }
-  }, [lastPosition?.latitude, lastPosition?.longitude, isFollowing]);
+  }, [planePosition?.latitude, planePosition?.longitude, isFollowing]);
 
   const geojson: GeoJSON.GeoJSON = useMemo(() => {
     let features: Array<Feature> = [];
     // Only show live plane position if no flight is selected
-    if (lastPosition) {
+    if (planePosition) {
       features = [
         {
           type: 'Feature',
           geometry: {
             type: 'Point',
-            coordinates: [lastPosition.longitude, lastPosition.latitude],
+            coordinates: [planePosition.longitude, planePosition.latitude],
           },
           properties: {
-            heading: lastPosition.heading,
-            altitude: lastPosition.altitude,
+            heading: planePosition.heading,
           },
         },
       ];
@@ -62,7 +54,7 @@ const MapView = () => {
       type: 'FeatureCollection' as const,
       features: features,
     };
-  }, [lastPosition, selectedFlight]);
+  }, [planePosition]);
 
   const pathGeojson = useMemo(() => {
     return pathToGeoJSON(flightPath);
@@ -115,7 +107,7 @@ const MapView = () => {
               'icon-allow-overlap': true,
             }}
             paint={{
-              'icon-opacity': lastPosition ? 1 : 0,
+              'icon-opacity': planePosition ? 1 : 0,
             }}
           />
         </Source>

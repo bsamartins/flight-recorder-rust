@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useGetFlightData } from './useGetFlightData.ts';
+import { useFlightStoreSelector } from './useFlightStoreSelector.ts';
 
 export interface PathPoint {
   longitude: number;
@@ -35,23 +35,16 @@ function getAltitudeColor(altitude: number): string {
  * Returns the current path as a GeoJSON FeatureCollection
  * Supports both live flight data and recorded flight history
  */
-export function useFlightPath(
-  selectedFlightId: string,
-  options?: { enabled?: boolean },
-): PathPoint[] | undefined {
-  const { data = [] } = useGetFlightData(selectedFlightId, {
-    enabled: options?.enabled,
-    refetchInterval: 1000,
-  });
+export function useFlightPath(): PathPoint[] {
+  const flightData = useFlightStoreSelector((s) => s.flightData);
   return useMemo(() => {
-    if (!options?.enabled) return undefined;
-    return data.map((d) => ({
+    return flightData.map((d) => ({
       longitude: d.longitude,
       latitude: d.latitude,
       altitude: d.altitude,
       timestamp: new Date(d.timestamp).getTime(),
     }));
-  }, [options?.enabled, data]);
+  }, [flightData]);
 }
 
 /**
