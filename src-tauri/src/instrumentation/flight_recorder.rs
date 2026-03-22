@@ -46,9 +46,25 @@ impl FlightRecorder {
                             "airspeed": data.airspeed_indicated,
                         }));
 
-                        // Update aircraft and aircraft_model on first data point if not already set
-                        if !aircraft_updated {
-                            if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
+                        // Save flight data to database
+                        if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
+                            if let Err(e) = flight_repository.save_flight_data(
+                                &flight.id,
+                                data.lat,
+                                data.lon,
+                                data.heading_indictor,
+                                data.altitude,
+                                data.altitude_above_ground,
+                                data.altitude_ground,
+                                data.airspeed_indicated,
+                                data.airspeed_true,
+                                data.ground_velocity,
+                            ).await {
+                                tracing::error!("Failed to save flight data: {}", e);
+                            }
+
+                            // Update aircraft and aircraft_model on first data point if not already set
+                            if !aircraft_updated {
                                 if flight.aircraft.is_none() || flight.aircraft_model.is_none() {
                                     if let Err(e) = flight_repository.update_aircraft_and_model(&flight.id, &data.atc_id, &data.title).await {
                                         tracing::error!("Failed to update aircraft info: {}", e);

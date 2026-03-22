@@ -1,10 +1,11 @@
 use crate::database::entities::{
     flights::Column as FlightColumns, flights::Model as FlightEntity, prelude::Flights,
+    flight_data, flight_data::Model as FlightDataEntity,
 };
 use chrono::Utc;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel,
-    QueryFilter,
+    QueryFilter, Set,
 };
 
 #[derive(Clone)]
@@ -77,5 +78,35 @@ impl FlightRepository {
             }
         }
         Ok(())
+    }
+
+    pub async fn save_flight_data(
+        &self,
+        flight_id: &str,
+        latitude: f64,
+        longitude: f64,
+        heading: f64,
+        altitude: f64,
+        altitude_above_ground: f64,
+        ground_altitude: f64,
+        indicated_airspeed: f64,
+        true_airspeed: f64,
+        ground_speed: f64,
+    ) -> Result<FlightDataEntity, DbErr> {
+        let data = flight_data::ActiveModel {
+            flight_id: Set(flight_id.to_string()),
+            latitude: Set(latitude),
+            longitude: Set(longitude),
+            heading: Set(heading),
+            altitude: Set(altitude),
+            altitude_above_ground: Set(altitude_above_ground),
+            ground_altitude: Set(ground_altitude),
+            indicated_airspeed: Set(indicated_airspeed),
+            true_airspeed: Set(true_airspeed),
+            ground_speed: Set(ground_speed),
+            timestamp: Set(Utc::now()),
+            ..Default::default()
+        };
+        data.insert(&self.db).await
     }
 }
