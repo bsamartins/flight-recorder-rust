@@ -13,7 +13,7 @@ import { useSelectedFlight } from '../../state/flights.ts';
 export default function MapView() {
   const position = usePlanePosition();
   const [selectedFlight] = useSelectedFlight();
-  const flightPath = useFlightPath(selectedFlight?.id);
+  const flightPath = useFlightPath(selectedFlight?.id ?? '', { enabled: !!selectedFlight }) ?? [];
   const mapRef = useRef<MapRef>(null);
   const planeColor = '#0080FF'; // Change this to customize plane icon color
   const [isFollowing, setIsFollowing] = useState(true);
