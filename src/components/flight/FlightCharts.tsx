@@ -2,6 +2,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -53,13 +54,21 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
           <CartesianGrid strokeDasharray='3 3' stroke='rgba(255,255,255,0.1)' />
           <XAxis
             dataKey='timestamp'
-            stroke='white'
-            label={{ position: 'insideBottomRight', offset: -5 }}
+            stroke='none'
             style={{ fontSize: '12px' }}
             tick={{ fill: 'white' }}
+            angle={-30}
           />
           <YAxis
-            stroke='white'
+            stroke='none'
+            style={{ fontSize: '12px' }}
+            tick={{ fill: 'white' }}
+            domain={[0, 'dataMax']}
+          />
+          <YAxis
+            yAxisId='airspeedAxis'
+            orientation='right'
+            stroke='none'
             style={{ fontSize: '12px' }}
             tick={{ fill: 'white' }}
             domain={[0, 'dataMax']}
@@ -84,6 +93,8 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
             type='monotone'
             dataKey='planeAltitude'
             stroke='#2196F3'
+            fill='#2196F3'
+            fillOpacity={0.3}
             name='Plane Altitude (ft)'
             dot={false}
             strokeWidth={2}
@@ -98,10 +109,11 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
             dot={false}
             isAnimationActive={false}
           />
-          <Area
+          <Line
             type='monotone'
             dataKey='airspeed'
             stroke='#FFD700'
+            yAxisId='airspeedAxis'
             name='Indicated Airspeed (knots)'
             dot={false}
             strokeWidth={2}
