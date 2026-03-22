@@ -13,10 +13,11 @@ export default function MyFlights() {
     <BlurredContainer
       sx={{
         display: 'flex',
-        width: '350px',
+        width: selectedFlight ? 500 : 350,
         minHeight: 0,
         m: 2,
         p: 2,
+        transition: 'width 0.3s ease-in-out',
       }}
     >
       {selectedFlight ? (
