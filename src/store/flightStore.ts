@@ -30,9 +30,10 @@ export const useFlightStore = create<FlightStoreState>()(
           set({ selectedFlight: flight ?? undefined });
           if (get().dataTimeout) {
             clearInterval(get().dataTimeout);
+            set({ dataTimeout: undefined });
           }
           if (flight) {
-            const x = async () => {
+            const fetchAndSet = async () => {
               const data = await getFlightData(flight.id);
               const lastPosition = !flight.end && data.length > 0 ? data[data.length - 1] : null;
               set({
@@ -48,13 +49,13 @@ export const useFlightStore = create<FlightStoreState>()(
             };
 
             if (flight.end) {
-              await x();
+              await fetchAndSet();
             } else {
-              const timeout = setInterval(x, 1000);
+              const timeout = setInterval(fetchAndSet, 1000);
               set({ dataTimeout: timeout });
             }
           } else {
-            set({ flightData: [], dataTimeout: undefined });
+            set({ flightData: [] });
           }
         },
       };

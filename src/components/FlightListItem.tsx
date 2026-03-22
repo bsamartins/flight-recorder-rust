@@ -48,7 +48,7 @@ export default function FlightListItem(props: FlightListItemProps) {
         >
           <Stack direction='column' spacing={1.5}>
             <Stack direction='column' spacing={0.5}>
-              <Typography level='title-lg'>{flight.aircraft || 'No Callsign'}</Typography>
+              <Typography level='title-lg'>{flight.aircraft ?? 'No Callsign'}</Typography>
               {flight.aircraftModel && (
                 <Typography level='title-sm'>{flight.aircraftModel}</Typography>
               )}

@@ -3,26 +3,35 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTauriListen } from './useTauriListen.ts';
 import { useCallback } from 'react';
 import { EventCallback } from '@tauri-apps/api/event';
+import { Flight } from '../bindings/Flight.ts';
+import { useFlightStoreSelector } from './useFlightStoreSelector.ts';
 
 interface FlightEndedPayload {
-  flightId: string;
-  aircraftModel: string;
+  flight: Flight;
 }
 
 export function useFlightEndedEvent() {
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
-  const handleEvent = useCallback<EventCallback<FlightEndedPayload>>((event) => {
-    console.log('Flight completed event received:', event);
-    const { aircraftModel } = event.payload;
-    enqueueSnackbar(`Flight Completed: ${aircraftModel}`, {
-      variant: 'success',
-      autoHideDuration: 4000,
-    });
-    // Invalidate the flights query to refresh the list
-    void queryClient.invalidateQueries({ queryKey: ['list-flights'] });
-    void queryClient.invalidateQueries({ queryKey: ['is-flight-in-progress'] });
-  }, []);
+  const selectedFlight = useFlightStoreSelector((s) => s.selectedFlight);
+  const setSelectedFlight = useFlightStoreSelector((s) => s.setSelectedFlight);
+  const handleEvent = useCallback<EventCallback<FlightEndedPayload>>(
+    (event) => {
+      enqueueSnackbar('Flight Completed', {
+        variant: 'success',
+        autoHideDuration: 4000,
+      });
+
+      if (selectedFlight?.id === event.payload.flight.id) {
+        setSelectedFlight(event.payload.flight);
+      }
+
+      // Invalidate the flights query to refresh the list
+      void queryClient.invalidateQueries({ queryKey: ['list-flights'] });
+      void queryClient.invalidateQueries({ queryKey: ['is-flight-in-progress'] });
+    },
+    [selectedFlight, setSelectedFlight, queryClient],
+  );
 
   useTauriListen<FlightEndedPayload>('flight-ended', handleEvent);
 }
