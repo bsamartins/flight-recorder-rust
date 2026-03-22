@@ -1,14 +1,17 @@
 use std::fmt::{Debug, Formatter};
 use std::time::Duration;
 
+use crate::database::entities::flight_data::ActiveModel as FlightDataActiveModel;
+use crate::database::entities::flight_data::Model as FlightDataEntity;
+use crate::database::entities::flights::Model as FlightEntity;
+use crate::instrumentation::flight_instrumentation::{self, AirplaneData, FlightEvent};
+use crate::repositories::flight_repository::FlightRepository;
+use chrono::{DateTime, Utc};
+use flight_instrumentation::FlightInstrumentation;
+use sea_orm::entity::*;
+use tauri::{AppHandle, Emitter};
 use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
 use uuid::Uuid;
-use flight_instrumentation::FlightInstrumentation;
-use crate::instrumentation::flight_instrumentation::{self, FlightEvent};
-use tauri::{AppHandle, Emitter};
-use crate::repositories::flight_repository::FlightRepository;
-use crate::database::entities::flight_data::Model as FlightDataEntity;
-use chrono::Utc;
 
 pub struct FlightRecorder {
     scheduler: JobScheduler,
@@ -50,24 +53,7 @@ impl FlightRecorder {
 
                         // Save flight data to database
                         if let Ok(Some(flight)) = flight_repository.get_flight_in_progress().await {
-                            let flight_data = FlightDataEntity {
-                                id: 0, // Will be auto-generated
-                                flight_id: flight.id.clone(),
-                                latitude: data.lat,
-                                longitude: data.lon,
-                                heading: data.heading_indictor,
-                                altitude: data.altitude,
-                                altitude_above_ground: data.altitude_above_ground,
-                                ground_altitude: data.altitude_ground,
-                                indicated_airspeed: data.airspeed_indicated,
-                                true_airspeed: data.airspeed_true,
-                                ground_speed: data.ground_velocity,
-                                timestamp: Utc::now(),
-                            };
-                            if let Err(e) = flight_repository.save_flight_data(flight_data).await {
-                                tracing::error!("Failed to save flight data: {}", e);
-                            }
-
+                            record_flight_data(&flight_repository, &flight.id, &data).await;
                             // Update aircraft and aircraft_model on first data point if not already set
                             if !aircraft_updated {
                                 if flight.aircraft.is_none() || flight.aircraft_model.is_none() {
@@ -133,6 +119,27 @@ impl FlightRecorder {
     fn execute(uuid: Uuid, _scheduler: JobScheduler) {
         tracing::debug!("Executing task {uuid}")
     }
+}
+
+async fn record_flight_data(flight_repository: &FlightRepository, flight_id: &str, data: &AirplaneData) {
+    let flight_data = FlightDataActiveModel {
+        flight_id: Set(flight_id.to_string()),
+        latitude: Set(data.lat),
+        longitude: Set(data.lon),
+        heading: Set(data.heading_indictor),
+        altitude: Set(data.altitude),
+        altitude_above_ground: Set(data.altitude_above_ground),
+        ground_altitude: Set(data.altitude_ground),
+        indicated_airspeed: Set(data.airspeed_indicated),
+        true_airspeed: Set(data.airspeed_true),
+        ground_speed: Set(data.ground_velocity),
+        timestamp: Set(Utc::now()),
+        ..Default::default()
+    };
+    if let Err(e) = flight_repository.save_flight_data(flight_data).await {
+        tracing::error!("Failed to save flight data: {}", e);
+    }
+
 }
 
 impl Debug for FlightRecorder {

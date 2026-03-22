@@ -1,9 +1,9 @@
 use crate::database::entities::{
+    flight_data, flight_data::Column as FlightDataColumns, flight_data::Model as FlightDataEntity,
     flights::Column as FlightColumns, flights::Model as FlightEntity, prelude::Flights,
-    flight_data, flight_data::Model as FlightDataEntity, flight_data::Column as FlightDataColumns,
 };
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, Set, Order, QueryOrder};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder};
 
 #[derive(Clone)]
 pub struct FlightRepository {
@@ -77,7 +77,7 @@ impl FlightRepository {
         Ok(())
     }
 
-    pub async fn save_flight_data(&self, data: FlightDataEntity) -> Result<FlightDataEntity, DbErr> {
+    pub async fn save_flight_data(&self, data: flight_data::ActiveModel) -> Result<FlightDataEntity, DbErr> {
         data.into_active_model().insert(&self.db).await
     }
 

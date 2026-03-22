@@ -39,7 +39,10 @@ export function useFlightPath(
   selectedFlightId: string,
   options?: { enabled?: boolean },
 ): PathPoint[] | undefined {
-  const { data = [] } = useGetFlightData(selectedFlightId);
+  const { data = [] } = useGetFlightData(selectedFlightId, {
+    enabled: options?.enabled,
+    refetchInterval: 1000,
+  });
   return useMemo(() => {
     if (!options?.enabled) return undefined;
     return data.map((d) => ({
