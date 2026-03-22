@@ -3,7 +3,7 @@ import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { FlightData } from '../bindings/FlightData.ts';
 import { Flight } from '../bindings/Flight.ts';
 import { getFlightData } from '../commands';
-import { useTauriListen } from '../hooks/useTauriListen.ts';
+import { Event, listen } from '@tauri-apps/api/event';
 
 export interface FlightStoreState {
   planePosition?: PlanePosition;
@@ -17,20 +17,24 @@ export interface FlightStoreState {
 export const useFlightStore = create<FlightStoreState>()(
   devtools(
     subscribeWithSelector((set, get) => {
-      useTauriListen<PlanePosition>('flight-position', (e) => {
+      void listen('flight-position', (e: Event<PlanePosition>) => {
         if (!get().selectedFlight) {
           set({ planePosition: e.payload });
         }
       });
+
       return {
         flightData: [],
 
-        setSelectedFlight: (flight: Flight | null) => {
+        setSelectedFlight: async (flight: Flight | null) => {
           set({ selectedFlight: flight ?? undefined });
+          if (get().dataTimeout) {
+            clearInterval(get().dataTimeout);
+          }
           if (flight) {
-            const timeout = setInterval(async () => {
-              const data = await getFlightData(flight?.id);
-              const lastPosition = data.length > 0 ? data[data.length - 1] : null;
+            const x = async () => {
+              const data = await getFlightData(flight.id);
+              const lastPosition = !flight.end && data.length > 0 ? data[data.length - 1] : null;
               set({
                 flightData: data,
                 planePosition: lastPosition
@@ -41,12 +45,15 @@ export const useFlightStore = create<FlightStoreState>()(
                     }
                   : undefined,
               });
-            }, 1000);
-            set({ dataTimeout: timeout });
-          } else {
-            if (get().dataTimeout) {
-              clearInterval(get().dataTimeout);
+            };
+
+            if (flight.end) {
+              await x();
+            } else {
+              const timeout = setInterval(x, 1000);
+              set({ dataTimeout: timeout });
             }
+          } else {
             set({ flightData: [], dataTimeout: undefined });
           }
         },

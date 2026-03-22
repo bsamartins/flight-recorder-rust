@@ -4,12 +4,13 @@ import {
   listFlights as listFlightsCommand,
 } from '../commands';
 import { useQuery } from '@tanstack/react-query';
-import { useFlightStoreSelector } from '../hooks/useFlightStoreSelector.ts';
 
 export function useListFlights() {
   return useQuery({
     queryKey: ['list-flights'],
     queryFn: () => listFlightsCommand(),
+    refetchInterval: 1000,
+    refetchIntervalInBackground: true,
   });
 }
 
@@ -30,5 +31,3 @@ export function useIsSimulatorPaused() {
     refetchIntervalInBackground: true,
   });
 }
-
-export const useSelectedFlight = () => useFlightStoreSelector((s) => s.selectedFlight);

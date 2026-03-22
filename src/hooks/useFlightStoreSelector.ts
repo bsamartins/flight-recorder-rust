@@ -1,5 +1,5 @@
 import { useFlightStoreContext } from '../context/FlightStoreContext.tsx';
-import { FlightStoreState } from '../store/flightDataStore';
+import { FlightStoreState } from '../store/flightStore.ts';
 
 /**
  * Hook to select specific parts of the flight store state
@@ -9,9 +9,7 @@ import { FlightStoreState } from '../store/flightDataStore';
  * const selectedFlight = useFlightStoreSelector(state => state.selectedFlight);
  * const flightData = useFlightStoreSelector(state => state.flightData);
  */
-export function useFlightStoreSelector<T>(
-  selector: (state: FlightStoreState) => T,
-): T {
+export function useFlightStoreSelector<T>(selector: (state: FlightStoreState) => T): T {
   const store = useFlightStoreContext();
   return store(selector);
 }

@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { useFlightStore } from '../store/flightDataStore';
+import { useFlightStore } from '../store/flightStore.ts';
 
 interface FlightStoreContextType {
   useStore: typeof useFlightStore;
