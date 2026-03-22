@@ -18,6 +18,7 @@ export const FlightDetails = (props: FlightDetailsProps) => {
   const { flight } = props;
   const clearSelectedFlight = useFlightStoreSelector((s) => s.clearSelectedFlight);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [view, setView] = useState<'overview' | 'data'>('overview');
 
   return (
     <Sheet
@@ -49,11 +50,15 @@ export const FlightDetails = (props: FlightDetailsProps) => {
         </IconButton>
         <FlightMenu flight={flight} anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />
       </Stack>
-      <ButtonGroup sx={{ display: 'flex', flex: 1, justifyContent: 'space-evenly' }}>
-        <Button variant='outlined' sx={{ flex: 1 }}>
+      <ButtonGroup buttonFlex={1} sx={{ display: 'flex', flex: 1, justifyContent: 'space-evenly' }}>
+        <Button
+          variant='outlined'
+          disabled={view === 'overview'}
+          onClick={() => setView('overview')}
+        >
           Overview
         </Button>
-        <Button variant='outlined' sx={{ flex: 1 }}>
+        <Button variant='outlined' disabled={view === 'data'} onClick={() => setView('data')}>
           Data
         </Button>
       </ButtonGroup>

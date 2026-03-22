@@ -71,7 +71,11 @@ export const FlightMenu = (props: FlightMenuProps) => {
         open={showDeleteConfirm}
         onClose={handleCancelDelete}
         slotProps={{
-          backdrop: { sx: { opacity: 0.25, backdropFilter: 'blur(4px)' } },
+          backdrop: {
+            sx: {
+              opacity: 0,
+            },
+          },
         }}
       >
         <ModalDialog
