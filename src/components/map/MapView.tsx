@@ -1,17 +1,19 @@
 import { Layer, Map, Source } from 'react-map-gl/maplibre';
 import { Box } from '@mui/joy';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useFlightPosition } from '../../hooks/useFlightPosition.ts';
+import { usePlanePosition } from '../../hooks/usePlanePosition.ts';
 import { useFlightPath, pathToGeoJSON } from '../../hooks/useFlightPath.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Feature } from 'geojson';
 import { getPlaneImageData } from './PlaneIcon.ts';
 import { MapRef } from 'react-map-gl/mapbox-legacy';
 import MapControls from './MapControls.tsx';
+import { useSelectedFlight } from '../../state/flights.ts';
 
 export default function MapView() {
-  const position = useFlightPosition();
-  const flightPath = useFlightPath();
+  const position = usePlanePosition();
+  const [selectedFlight] = useSelectedFlight();
+  const flightPath = useFlightPath(selectedFlight?.id);
   const mapRef = useRef<MapRef>(null);
   const planeColor = '#0080FF'; // Change this to customize plane icon color
   const [isFollowing, setIsFollowing] = useState(true);
@@ -34,7 +36,8 @@ export default function MapView() {
 
   const geojson: GeoJSON.GeoJSON = useMemo(() => {
     let features: Array<Feature> = [];
-    if (position) {
+    // Only show live plane position if no flight is selected
+    if (position && !selectedFlight) {
       features = [
         {
           type: 'Feature',
@@ -55,7 +58,7 @@ export default function MapView() {
       type: 'FeatureCollection' as const,
       features: features,
     };
-  }, [position]);
+  }, [position, selectedFlight]);
 
   const pathGeojson = useMemo(() => {
     return pathToGeoJSON(flightPath);
@@ -95,7 +98,7 @@ export default function MapView() {
           />
         </Source>
 
-        <Source id='flight-position' type='geojson' data={geojson}>
+        <Source id='plane-position' type='geojson' data={geojson}>
           <Layer
             id='plane-icon'
             type='symbol'

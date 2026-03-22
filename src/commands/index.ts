@@ -1,5 +1,6 @@
 import {invoke} from '@tauri-apps/api/core';
 import {Flight} from '../bindings/Flight.ts';
+import {FlightData} from '../bindings/FlightData.ts';
 
 export async function greet(name: string): Promise<string> {
     return await invoke('greet', {name});
@@ -19,4 +20,8 @@ export async function isFlightInProgress(): Promise<boolean> {
 
 export async function isSimulatorPaused(): Promise<boolean> {
     return await invoke('is_simulator_paused');
+}
+
+export async function getFlightData(flightId: string): Promise<FlightData[]> {
+    return await invoke('get_flight_data', {flightId});
 }

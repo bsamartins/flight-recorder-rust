@@ -1,4 +1,3 @@
-use chrono::DateTime;
 use serde::Serialize;
 use ts_rs::TS;
 
@@ -13,6 +12,22 @@ pub struct Flight {
     pub aircraft_model: Option<String>,
     pub start: String,
     pub end: Option<String>,
+}
+
+#[derive(Serialize, TS, Clone)]
+#[ts(export, export_to = "../../src/bindings/", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct FlightData {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub heading: f64,
+    pub altitude: f64,
+    pub altitude_above_ground: f64,
+    pub ground_altitude: f64,
+    pub indicated_airspeed: f64,
+    pub true_airspeed: f64,
+    pub ground_speed: f64,
+    pub timestamp: String,
 }
 
 #[derive(Serialize, TS, PartialEq, Eq, Hash, Clone)]

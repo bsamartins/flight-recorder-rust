@@ -9,7 +9,7 @@ export interface FlightPosition {
   airspeed: number;
 }
 
-interface FligthPositionEvent {
+interface FlightPositionEvent {
   latitude: number;
   longitude: number;
   heading: number;
@@ -17,11 +17,11 @@ interface FligthPositionEvent {
   airspeed: number;
 }
 
-export function useFlightPosition() {
+export function usePlanePosition() {
   const [position, setPosition] = useState<FlightPosition | null>(null);
 
   const handlePositionEvent = useCallback(
-    (event: TauriEvent<FligthPositionEvent>) => {
+    (event: TauriEvent<FlightPositionEvent>) => {
       setPosition(event.payload);
     },
     [setPosition],

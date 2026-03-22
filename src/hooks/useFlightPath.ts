@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useFlightPosition } from './useFlightPosition.ts';
+import { usePlanePosition } from './usePlanePosition.ts';
+import { getFlightData } from '../commands';
 
 export interface PathPoint {
   longitude: number;
@@ -37,9 +38,10 @@ function getAltitudeColor(altitude: number): string {
 /**
  * Manages flight path history with altitude-based coloring
  * Returns the current path as a GeoJSON FeatureCollection
+ * Supports both live flight data and recorded flight history
  */
-export function useFlightPath() {
-  const position = useFlightPosition();
+export function useFlightPath(selectedFlightId?: string) {
+  const position = usePlanePosition();
   const pathBufferRef = useRef<PathPoint[]>([]);
   const [renderedPath, setRenderedPath] = useState<PathHistory>({
     points: [],
@@ -47,7 +49,39 @@ export function useFlightPath() {
   const lastUpdateRef = useRef<number>(0);
   const lastFlightActiveRef = useRef<boolean>(false);
 
+  // Load recorded flight data when a flight is selected
   useEffect(() => {
+    if (!selectedFlightId) {
+      return;
+    }
+
+    const loadFlightData = async () => {
+      try {
+        const data = await getFlightData(selectedFlightId);
+        const points: PathPoint[] = data.map((d) => ({
+          longitude: d.longitude,
+          latitude: d.latitude,
+          altitude: d.altitude,
+          timestamp: new Date(d.timestamp).getTime(),
+        }));
+
+        pathBufferRef.current = points;
+        setRenderedPath({ points });
+      } catch (error) {
+        console.error('Failed to load flight data:', error);
+      }
+    };
+
+    void loadFlightData();
+  }, [selectedFlightId]);
+
+  // Handle live flight data when no flight is selected
+  useEffect(() => {
+    if (selectedFlightId) {
+      // When a flight is selected, don't track live position
+      return;
+    }
+
     const isFlightActive = position !== null;
 
     // Clear path if flight just ended
@@ -91,8 +125,7 @@ export function useFlightPath() {
     // Throttle update: every 500ms or every 5 new points
     const now = Date.now();
     const timeSinceUpdate = now - lastUpdateRef.current;
-    const newPointsSinceRender =
-      pathBufferRef.current.length - renderedPath.points.length;
+    const newPointsSinceRender = pathBufferRef.current.length - renderedPath.points.length;
 
     if (timeSinceUpdate > 500 || newPointsSinceRender >= 5) {
       const points = [...pathBufferRef.current];
@@ -105,7 +138,7 @@ export function useFlightPath() {
 
       lastUpdateRef.current = now;
     }
-  }, [position]);
+  }, [position, selectedFlightId]);
 
   return renderedPath;
 }

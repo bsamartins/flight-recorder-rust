@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::database::entities::flights::Model as FlightEntity;
-use crate::model::{ErrorModel, Flight};
+use crate::model::{ErrorModel, Flight, FlightData};
 use crate::repositories::flight_repository::FlightRepository;
 use crate::state::FlightState;
 use chrono::Utc;
@@ -69,6 +69,32 @@ pub fn is_instrumentation_connected(state: State<Arc<FlightState>>) -> bool {
 #[tauri::command]
 pub fn is_simulator_paused(state: State<Arc<FlightState>>) -> bool {
     state.is_paused()
+}
+
+#[tauri::command]
+pub async fn get_flight_data<'s>(
+    flight_id: String,
+    repo: State<'s, FlightRepository>,
+) -> Result<Vec<FlightData>, ErrorModel> {
+    let data = repo
+        .get_flight_data(&flight_id)
+        .map_err(map_db_error)
+        .await?;
+    Ok(data
+        .into_iter()
+        .map(|d| FlightData {
+            latitude: d.latitude,
+            longitude: d.longitude,
+            heading: d.heading,
+            altitude: d.altitude,
+            altitude_above_ground: d.altitude_above_ground,
+            ground_altitude: d.ground_altitude,
+            indicated_airspeed: d.indicated_airspeed,
+            true_airspeed: d.true_airspeed,
+            ground_speed: d.ground_speed,
+            timestamp: d.timestamp.to_rfc3339(),
+        })
+        .collect())
 }
 
 impl FlightEntity {
