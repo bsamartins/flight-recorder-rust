@@ -11,7 +11,8 @@ export interface FlightStoreState {
   selectedFlight?: Flight;
   dataTimeout?: NodeJS.Timeout;
 
-  setSelectedFlight: (flight: Flight | null) => void;
+  setSelectedFlight: (flight: Flight) => void;
+  clearSelectedFlight: () => void;
 }
 
 export const useFlightStore = create<FlightStoreState>()(
@@ -26,36 +27,39 @@ export const useFlightStore = create<FlightStoreState>()(
       return {
         flightData: [],
 
-        setSelectedFlight: async (flight: Flight | null) => {
-          set({ selectedFlight: flight ?? undefined });
+        setSelectedFlight: async (flight) => {
+          set({ selectedFlight: flight });
           if (get().dataTimeout) {
             clearInterval(get().dataTimeout);
             set({ dataTimeout: undefined });
           }
-          if (flight) {
-            const fetchAndSet = async () => {
-              const data = await getFlightData(flight.id);
-              const lastPosition = !flight.end && data.length > 0 ? data[data.length - 1] : null;
-              set({
-                flightData: data,
-                planePosition: lastPosition
-                  ? {
-                      latitude: lastPosition.latitude,
-                      longitude: lastPosition.longitude,
-                      heading: lastPosition.heading,
-                    }
-                  : undefined,
-              });
-            };
+          const fetchAndSet = async () => {
+            const data = await getFlightData(flight.id);
+            const lastPosition = !flight.end && data.length > 0 ? data[data.length - 1] : null;
+            set({
+              flightData: data,
+              planePosition: lastPosition
+                ? {
+                    latitude: lastPosition.latitude,
+                    longitude: lastPosition.longitude,
+                    heading: lastPosition.heading,
+                  }
+                : undefined,
+            });
+          };
 
-            if (flight.end) {
-              await fetchAndSet();
-            } else {
-              const timeout = setInterval(fetchAndSet, 1000);
-              set({ dataTimeout: timeout });
-            }
+          if (flight.end) {
+            await fetchAndSet();
           } else {
-            set({ flightData: [] });
+            const timeout = setInterval(fetchAndSet, 1000);
+            set({ dataTimeout: timeout });
+          }
+        },
+        clearSelectedFlight: () => {
+          set({ flightData: [], selectedFlight: undefined });
+          if (get().dataTimeout) {
+            clearInterval(get().dataTimeout);
+            set({ dataTimeout: undefined });
           }
         },
       };

@@ -35,7 +35,6 @@ export default function FlightsPane(props: FlightsPaneProps) {
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
-        px: 2,
         backgroundColor: 'transparent',
         minHeight: 0,
       }}
@@ -45,7 +44,6 @@ export default function FlightsPane(props: FlightsPaneProps) {
         spacing={1}
         alignItems='center'
         justifyContent='space-between'
-        pt={2}
         pb={1.5}
         sx={{
           backgroundColor: 'transparent',
