@@ -42,6 +42,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             cmd::is_instrumentation_connected,
             cmd::is_simulator_paused,
             cmd::get_flight_data,
+            cmd::delete_flight,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

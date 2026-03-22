@@ -3,7 +3,7 @@ use crate::database::entities::{
     flights::Column as FlightColumns, flights::Model as FlightEntity, prelude::Flight, prelude::FlightData,
 };
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder, DeleteMany};
 
 #[derive(Clone)]
 pub struct FlightRepository {
@@ -88,5 +88,20 @@ impl FlightRepository {
             .order_by_asc(FlightDataColumns::Timestamp)
             .all(&self.db)
             .await
+    }
+
+    pub async fn delete_flight(&self, flight_id: &str) -> Result<u64, DbErr> {
+        // Delete all flight data records for this flight first (cascade)
+        flight_data::Entity::delete_many()
+            .filter(FlightDataColumns::FlightId.eq(flight_id))
+            .exec(&self.db)
+            .await?;
+
+        // Delete the flight record
+        Flight::delete_by_id(flight_id.to_string())
+            .exec(&self.db)
+            .await?;
+
+        Ok(1)
     }
 }

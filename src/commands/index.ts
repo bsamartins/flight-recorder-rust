@@ -21,3 +21,7 @@ export async function isSimulatorPaused(): Promise<boolean> {
 export async function getFlightData(flightId: string): Promise<FlightData[]> {
   return await invoke('get_flight_data', { flightId });
 }
+
+export async function deleteFlight(flightId: string): Promise<void> {
+  return await invoke('delete_flight', { flightId });
+}

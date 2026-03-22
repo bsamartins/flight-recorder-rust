@@ -97,6 +97,18 @@ pub async fn get_flight_data<'s>(
         .collect())
 }
 
+#[tauri::command]
+pub async fn delete_flight<'s>(
+    flight_id: String,
+    repo: State<'s, FlightRepository>,
+) -> Result<(), ErrorModel> {
+    repo
+        .delete_flight(&flight_id)
+        .map_err(map_db_error)
+        .await?;
+    Ok(())
+}
+
 impl FlightEntity {
     pub fn to_model(&self) -> Flight {
         Flight {

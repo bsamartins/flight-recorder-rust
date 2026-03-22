@@ -9,6 +9,9 @@ import DialogTitle from '@mui/joy/DialogTitle';
 import DialogContent from '@mui/joy/DialogContent';
 import DialogActions from '@mui/joy/DialogActions';
 import { Flight } from '../bindings/Flight.ts';
+import { deleteFlight } from '../commands';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useFlightStoreSelector } from '../hooks/useFlightStoreSelector.ts';
 
 interface FlightMenuProps {
   flight: Flight;
@@ -19,6 +22,20 @@ interface FlightMenuProps {
 export const FlightMenu = (props: FlightMenuProps) => {
   const { flight, anchor, onClose } = props;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const queryClient = useQueryClient();
+  const clearSelectedFlight = useFlightStoreSelector((s) => s.clearSelectedFlight);
+
+  const deleteFlightMutation = useMutation({
+    mutationFn: (flightId: string) => deleteFlight(flightId),
+    onSuccess: () => {
+      setShowDeleteConfirm(false);
+      clearSelectedFlight();
+      queryClient.invalidateQueries({ queryKey: ['list-flights'] });
+    },
+    onError: (error) => {
+      console.error('Failed to delete flight:', error);
+    },
+  });
 
   const handleMenuClose = () => {
     onClose?.();
@@ -30,9 +47,7 @@ export const FlightMenu = (props: FlightMenuProps) => {
   };
 
   const handleConfirmDelete = () => {
-    // TODO: Implement delete flight functionality
-    console.log('Deleting flight:', flight.id);
-    setShowDeleteConfirm(false);
+    deleteFlightMutation.mutate(flight.id);
   };
 
   const handleCancelDelete = () => {
@@ -71,10 +86,20 @@ export const FlightMenu = (props: FlightMenuProps) => {
             Are you sure you want to delete this flight? This action cannot be undone.
           </DialogContent>
           <DialogActions>
-            <Button variant='plain' color='neutral' onClick={handleCancelDelete}>
+            <Button
+              variant='plain'
+              color='neutral'
+              onClick={handleCancelDelete}
+              disabled={deleteFlightMutation.isPending}
+            >
               Cancel
             </Button>
-            <Button variant='solid' color='danger' onClick={handleConfirmDelete}>
+            <Button
+              variant='solid'
+              color='danger'
+              onClick={handleConfirmDelete}
+              loading={deleteFlightMutation.isPending}
+            >
               Delete
             </Button>
           </DialogActions>
