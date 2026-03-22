@@ -7,20 +7,18 @@ use std::sync::Arc;
 use futures::lock::Mutex;
 use sea_orm::DatabaseConnection;
 use tauri::{App, Manager};
-use tracing::Level;
 use tracing_subscriber;
 use tracing_subscriber::EnvFilter;
 
+use crate::database::repositories::flight_repository::FlightRepository;
 use instrumentation::flight_instrumentation::FlightInstrumentation;
 use instrumentation::flight_recorder::FlightRecorder;
 use state::FlightState;
-use crate::repositories::flight_repository::FlightRepository;
 
 mod cmd;
 mod database;
 mod instrumentation;
 mod model;
-mod repositories;
 mod state;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command

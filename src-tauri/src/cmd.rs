@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::database::entities::flights::Model as FlightEntity;
 use crate::model::{ErrorModel, Flight, FlightData};
-use crate::repositories::flight_repository::FlightRepository;
+use crate::database::repositories::flight_repository::FlightRepository;
 use crate::state::FlightState;
 use chrono::Utc;
 use futures::TryFutureExt;

@@ -2,11 +2,9 @@ use std::fmt::{Debug, Formatter};
 use std::time::Duration;
 
 use crate::database::entities::flight_data::ActiveModel as FlightDataActiveModel;
-use crate::database::entities::flight_data::Model as FlightDataEntity;
-use crate::database::entities::flights::Model as FlightEntity;
+use crate::database::repositories::flight_repository::FlightRepository;
 use crate::instrumentation::flight_instrumentation::{self, AirplaneData, FlightEvent};
-use crate::repositories::flight_repository::FlightRepository;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use flight_instrumentation::FlightInstrumentation;
 use sea_orm::entity::*;
 use tauri::{AppHandle, Emitter};

@@ -132,14 +132,6 @@ impl FlightInstrumentation {
         });
     }
 
-    pub fn is_connected(&self) -> bool {
-        self.connected.load(Ordering::Relaxed)
-    }
-
-    pub fn is_paused(&self) -> bool {
-        self.paused.load(Ordering::Relaxed)
-    }
-
     pub fn get_paused(&self) -> Arc<AtomicBool> {
         self.paused.clone()
     }

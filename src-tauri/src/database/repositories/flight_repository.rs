@@ -1,6 +1,6 @@
 use crate::database::entities::{
     flight_data, flight_data::Column as FlightDataColumns, flight_data::Model as FlightDataEntity,
-    flights::Column as FlightColumns, flights::Model as FlightEntity, prelude::Flights,
+    flights::Column as FlightColumns, flights::Model as FlightEntity, prelude::Flight, prelude::FlightData,
 };
 use chrono::Utc;
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder};
@@ -21,12 +21,12 @@ impl FlightRepository {
     }
 
     pub async fn find_all(&self) -> Result<Vec<FlightEntity>, DbErr> {
-        let flights = Flights::find().all(&self.db).await?;
+        let flights = Flight::find().all(&self.db).await?;
         return Ok(flights);
     }
 
     pub async fn flight_in_progress(&self) -> Result<bool, DbErr> {
-        let result = Flights::find()
+        let result = Flight::find()
             .filter(FlightColumns::EndTimestamp.is_null())
             .one(&self.db)
             .await?
@@ -36,7 +36,7 @@ impl FlightRepository {
     }
 
     pub async fn get_flight_in_progress(&self) -> Result<Option<FlightEntity>, DbErr> {
-        Flights::find()
+        Flight::find()
             .filter(FlightColumns::EndTimestamp.is_null())
             .one(&self.db)
             .await
@@ -48,7 +48,7 @@ impl FlightRepository {
         aircraft: &str,
         aircraft_model: &str,
     ) -> Result<(), DbErr> {
-        if let Some(flight) = Flights::find_by_id(flight_id.to_string()).one(&self.db).await? {
+        if let Some(flight) = Flight::find_by_id(flight_id.to_string()).one(&self.db).await? {
             let need_aircraft_update = flight.aircraft.is_none();
             let need_model_update = flight.aircraft_model.is_none();
 
@@ -67,7 +67,7 @@ impl FlightRepository {
     }
 
     pub async fn end_flight(&self, flight_id: &str) -> Result<(), DbErr> {
-        if let Some(flight) = Flights::find_by_id(flight_id.to_string()).one(&self.db).await? {
+        if let Some(flight) = Flight::find_by_id(flight_id.to_string()).one(&self.db).await? {
             if flight.end_timestamp.is_none() {
                 let mut active_flight = flight.into_active_model();
                 active_flight.end_timestamp = sea_orm::Set(Some(Utc::now()));
@@ -82,7 +82,7 @@ impl FlightRepository {
     }
 
     pub async fn get_flight_data(&self, flight_id: &str) -> Result<Vec<FlightDataEntity>, DbErr> {
-        flight_data::Entity::find()
+        FlightData::find()
             .filter(FlightDataColumns::FlightId.eq(flight_id))
             .order_by_asc(FlightDataColumns::Timestamp)
             .all(&self.db)
