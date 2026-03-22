@@ -9,6 +9,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Flight } from '../../bindings/Flight.ts';
 import { useFlightStoreSelector } from '../../hooks/useFlightStoreSelector.ts';
 import { FlightMenu } from './FlightMenu.tsx';
+import { FlightCharts } from './FlightCharts.tsx';
 
 interface FlightDetailsProps {
   flight: Flight;
@@ -19,6 +20,7 @@ export const FlightDetails = (props: FlightDetailsProps) => {
   const clearSelectedFlight = useFlightStoreSelector((s) => s.clearSelectedFlight);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [view, setView] = useState<'overview' | 'data'>('overview');
+  const flightData = useFlightStoreSelector((s) => s.flightData);
 
   return (
     <Sheet
@@ -27,6 +29,8 @@ export const FlightDetails = (props: FlightDetailsProps) => {
         flex: 1,
         flexDirection: 'column',
         backgroundColor: 'transparent',
+        minHeight: 0,
+        overflow: 'auto',
       }}
     >
       <Stack direction='row' justifyContent='start' alignItems='center'>
@@ -50,7 +54,7 @@ export const FlightDetails = (props: FlightDetailsProps) => {
         </IconButton>
         <FlightMenu flight={flight} anchor={menuAnchor} onClose={() => setMenuAnchor(null)} />
       </Stack>
-      <ButtonGroup buttonFlex={1} sx={{ display: 'flex', flex: 1, justifyContent: 'space-evenly' }}>
+      <ButtonGroup buttonFlex={1} sx={{ display: 'flex', justifyContent: 'space-evenly' }}>
         <Button
           variant='outlined'
           disabled={view === 'overview'}
@@ -59,10 +63,17 @@ export const FlightDetails = (props: FlightDetailsProps) => {
           Overview
         </Button>
         <Button variant='outlined' disabled={view === 'data'} onClick={() => setView('data')}>
-          Data
+          Charts
         </Button>
       </ButtonGroup>
-      <Box>Flight details will be displayed here</Box>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', p: 2 }}>
+        {view === 'overview' && <Box>Flight overview will be displayed here</Box>}
+        {view === 'data' && (
+          <>
+            <FlightCharts flightData={flightData} />
+          </>
+        )}
+      </Box>
     </Sheet>
   );
 };
