@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { FlightData } from '../../../bindings/FlightData.ts';
 import { formatTime } from './utils.ts';
+import { useMemo } from 'react';
 
 export const MainChart = ({ flightData }: { flightData: FlightData[] }) => {
   const chartData = flightData.map((point) => ({
@@ -18,6 +19,40 @@ export const MainChart = ({ flightData }: { flightData: FlightData[] }) => {
     planeAltitude: Math.round(point.altitude),
     airspeed: Math.round(point.indicatedAirspeed * 10) / 10,
   }));
+
+  const maxAltitude = useMemo(() => {
+    const dataMax = chartData
+      .map((d) => d.planeAltitude)
+      .reduce((max, altitude) => Math.max(max, altitude), 10000);
+    return Math.ceil(dataMax / 10000) * 10000;
+  }, [chartData]);
+
+  const maxAirspeed = useMemo(() => {
+    const dataMax = chartData
+      .map((d) => d.airspeed)
+      .reduce((max, altitude) => Math.max(max, altitude), 100);
+    return Math.ceil(dataMax / 100) * 100;
+  }, [chartData]);
+
+  const generateAltitudeTicks = () => {
+    const tickSize = Math.ceil(maxAltitude / 5);
+    const ticks = [];
+    for (let i = 0; i <= 5; i += 1) {
+      ticks.push(i * tickSize);
+    }
+    return ticks;
+  };
+
+  // Generate airspeed ticks based on max airspeed
+  const generateAirspeedTicks = () => {
+    const ticks = [];
+    for (let i = 0; i <= maxAirspeed; i += 100) {
+      ticks.push(i);
+    }
+    return ticks;
+  };
+
+  console.log(generateAltitudeTicks());
 
   return (
     <ResponsiveContainer width='100%' height={250}>
@@ -34,7 +69,8 @@ export const MainChart = ({ flightData }: { flightData: FlightData[] }) => {
           stroke='none'
           style={{ fontSize: '12px' }}
           tick={{ fill: 'white' }}
-          domain={[0, 'dataMax']}
+          domain={[0, maxAltitude]}
+          ticks={generateAltitudeTicks()}
         />
         <YAxis
           yAxisId='airspeedAxis'
@@ -42,7 +78,8 @@ export const MainChart = ({ flightData }: { flightData: FlightData[] }) => {
           stroke='none'
           style={{ fontSize: '12px' }}
           tick={{ fill: 'white' }}
-          domain={[0, 'dataMax']}
+          domain={[0, maxAirspeed]}
+          ticks={generateAirspeedTicks()}
         />
         <Tooltip
           contentStyle={{
