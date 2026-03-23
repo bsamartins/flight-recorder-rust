@@ -3,7 +3,7 @@ use crate::database::entities::{
     flights::Column as FlightColumns, flights::Model as FlightEntity, prelude::Flight, prelude::FlightData,
 };
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder, DeleteMany};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, QueryFilter, QueryOrder};
 
 #[derive(Clone)]
 pub struct FlightRepository {

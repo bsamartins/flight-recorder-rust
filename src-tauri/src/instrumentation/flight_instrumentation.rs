@@ -177,9 +177,9 @@ pub struct AirplaneData {
     pub vertical_speed: f64,
     #[simconnect(name = "HEADING INDICATOR", unit = "degrees")]
     pub heading_indictor: f64,
-    #[simconnect(name = "ATTITUDE INDICATOR PITCH DEGREES", unit = "radians")]
+    #[simconnect(name = "PLANE PITCH DEGREES", unit = "degrees")]
     pub pitch: f64,
-    #[simconnect(name = "ATTITUDE INDICATOR BANK DEGREES", unit = "radians")]
+    #[simconnect(name = "PLANE BANK DEGREES", unit = "degrees")]
     pub bank: f64,
     // #[simconnect(name = "FUEL TOTAL CAPACITY", unit = "liters")]
     // pub fuel_total_capacity: f64,
