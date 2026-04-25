@@ -1,6 +1,7 @@
 import { Box, Typography } from '@mui/joy';
 import { FlightData } from '../../bindings/FlightData.ts';
 import { MainChart } from './charts/MainChart.tsx';
+import { FuelChart } from './charts/FuelChart.tsx';
 
 interface FlightChartsProps {
   flightData: FlightData[];
@@ -22,11 +23,13 @@ export const FlightCharts = ({ flightData }: FlightChartsProps) => {
       sx={{
         width: '100%',
         display: 'flex',
-        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: 2,
         mt: 2,
       }}
     >
       <MainChart flightData={flightData} />
+      <FuelChart flightData={flightData} />
     </Box>
   );
 };
