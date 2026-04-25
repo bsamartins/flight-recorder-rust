@@ -32,6 +32,7 @@ pub struct FlightData {
     pub bank: Option<f64>,
     pub fuel_total_quantity: Option<f64>,
     pub fuel_total_quantity_weight: Option<f64>,
+    pub flaps_handle_index: Option<i32>,
     pub timestamp: String,
 }
 

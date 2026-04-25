@@ -5,6 +5,7 @@ mod m20260125_000001_add_aircraft_model;
 mod m20260322_000001_create_flight_data;
 mod m20260322_000002_add_flight_dynamics;
 mod m20260425_000001_add_fuel_data;
+mod m20260425_000002_add_flaps_data;
 
 pub struct Migrator;
 
@@ -17,6 +18,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260322_000001_create_flight_data::Migration),
             Box::new(m20260322_000002_add_flight_dynamics::Migration),
             Box::new(m20260425_000001_add_fuel_data::Migration),
+            Box::new(m20260425_000002_add_flaps_data::Migration),
         ]
     }
 }

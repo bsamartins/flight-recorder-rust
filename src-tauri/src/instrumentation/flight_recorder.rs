@@ -146,6 +146,7 @@ async fn record_flight_data(flight_repository: &FlightRepository, flight_id: &st
         bank: Set(Some(data.bank)),
         fuel_total_quantity: Set(Some(data.fuel_total_quantity)),
         fuel_total_quantity_weight: Set(Some(data.fuel_total_quantity_weight)),
+        flaps_handle_index: Set(Some(data.flaps_handle_index as i32)),
         timestamp: Set(Utc::now()),
         ..Default::default()
     };

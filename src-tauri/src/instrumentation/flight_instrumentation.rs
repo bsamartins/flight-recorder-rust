@@ -185,4 +185,6 @@ pub struct AirplaneData {
     pub fuel_total_quantity: f64,
     #[simconnect(name = "FUEL TOTAL QUANTITY WEIGHT", unit = "pounds")]
     pub fuel_total_quantity_weight: f64,
+    #[simconnect(name = "FLAPS HANDLE INDEX", unit = "number")]
+    pub flaps_handle_index: f64,
 }
