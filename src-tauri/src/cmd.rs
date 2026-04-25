@@ -95,6 +95,8 @@ pub async fn get_flight_data<'s>(
             vertical_speed: d.vertical_speed,
             pitch: d.pitch,
             bank: d.bank,
+            fuel_total_quantity: d.fuel_total_quantity,
+            fuel_total_quantity_weight: d.fuel_total_quantity_weight,
             timestamp: d.timestamp.to_rfc3339(),
         })
         .collect())
