@@ -1,21 +1,32 @@
-import { Box, Select, Option, Typography } from '@mui/joy';
+import { Box, Button, ButtonGroup } from '@mui/joy';
 import { useFlightStore } from '../../store/flightStore';
-import { FuelUnit, FUEL_UNIT_LABELS } from '../../types/fuelUnit';
+import { FUEL_UNIT_ABBREVIATIONS, FuelUnit } from '../../types/fuelUnit';
 
 export const FuelUnitSelector = () => {
   const fuelUnit = useFlightStore((state) => state.fuelUnit);
   const setFuelUnit = useFlightStore((state) => state.setFuelUnit);
 
+  const units: FuelUnit[] = ['gallons', 'liters', 'pounds', 'kg'];
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <Typography level='body-sm'>Fuel Unit</Typography>
-      <Select value={fuelUnit} onChange={(_, value) => value && setFuelUnit(value as FuelUnit)}>
-        {Object.entries(FUEL_UNIT_LABELS).map(([value, label]) => (
-          <Option key={value} value={value}>
-            {label}
-          </Option>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+      <ButtonGroup size='sm' sx={{ '--ButtonGroup-radius': '4px' }}>
+        {units.map((unit) => (
+          <Button
+            key={unit}
+            variant={fuelUnit === unit ? 'solid' : 'outlined'}
+            onClick={() => setFuelUnit(unit)}
+            sx={{
+              fontSize: '11px',
+              minHeight: '24px',
+              px: 1.5,
+              py: 0.5,
+            }}
+          >
+            {FUEL_UNIT_ABBREVIATIONS[unit]}
+          </Button>
         ))}
-      </Select>
+      </ButtonGroup>
     </Box>
   );
 };
