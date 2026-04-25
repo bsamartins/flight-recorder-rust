@@ -10,7 +10,7 @@ export const FuelUnitSelector = () => {
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-      <ButtonGroup size='sm' sx={{ '--ButtonGroup-radius': '4px' }}>
+      <ButtonGroup size='sm'>
         {units.map((unit) => (
           <Button
             key={unit}
