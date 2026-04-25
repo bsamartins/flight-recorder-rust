@@ -10,6 +10,7 @@ import { Flight } from '../../bindings/Flight.ts';
 import { useFlightStoreSelector } from '../../hooks/useFlightStoreSelector.ts';
 import { FlightMenu } from './FlightMenu.tsx';
 import { FlightCharts } from './FlightCharts.tsx';
+import { FuelUnitSelector } from '../settings/FuelUnitSelector.tsx';
 
 interface FlightDetailsProps {
   flight: Flight;
@@ -109,6 +110,9 @@ export const FlightDetails = (props: FlightDetailsProps) => {
               </Grid>
               <DataPoint label='Bank' value={round(lastFlightDataPoint?.bank)?.toString() ?? '-'} />
             </Grid>
+            <Box sx={{ mx: 1, maxWidth: 200 }}>
+              <FuelUnitSelector />
+            </Box>
             <FlightCharts flightData={flightData} />
           </Stack>
         )}

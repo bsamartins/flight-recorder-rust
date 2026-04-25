@@ -1,16 +1,30 @@
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { FlightData } from '../../../bindings/FlightData.ts';
 import { formatTime } from './utils.ts';
+import { useFlightStore } from '../../../store/flightStore.ts';
+import { convertFuelValue, FUEL_UNIT_ABBREVIATIONS } from '../../../types/fuelUnit.ts';
 
 export const FuelChart = ({ flightData }: { flightData: FlightData[] }) => {
+  const fuelUnit = useFlightStore((state) => state.fuelUnit);
   const chartData = flightData
-    .filter((point) => point.fuelTotalQuantity != null)
-    .map((point) => ({
-      timestamp: formatTime(point.timestamp),
-      fuelQuantity: Math.round(point.fuelTotalQuantity! * 10) / 10,
-    }));
+    .map((point) => {
+      const fuelValue = convertFuelValue(
+        point.fuelTotalQuantity,
+        point.fuelTotalQuantityWeight,
+        fuelUnit
+      );
+      return fuelValue != null
+        ? {
+            timestamp: formatTime(point.timestamp),
+            fuelQuantity: Math.round(fuelValue * 10) / 10,
+          }
+        : null;
+    })
+    .filter((point) => point !== null);
 
   if (chartData.length === 0) return null;
+
+  const unit = FUEL_UNIT_ABBREVIATIONS[fuelUnit];
 
   return (
     <ResponsiveContainer width='100%' height={200}>
@@ -27,7 +41,7 @@ export const FuelChart = ({ flightData }: { flightData: FlightData[] }) => {
           stroke='none'
           style={{ fontSize: '12px' }}
           tick={{ fill: 'white' }}
-          unit=' gal'
+          unit={` ${unit}`}
         />
         <Tooltip
           contentStyle={{
@@ -38,7 +52,7 @@ export const FuelChart = ({ flightData }: { flightData: FlightData[] }) => {
             fontSize: '12px',
           }}
           labelStyle={{ color: 'white' }}
-          formatter={(value) => [`${value} gal`, 'Fuel Remaining']}
+          formatter={(value) => [`${value} ${unit}`, 'Fuel Remaining']}
         />
         <Area
           type='monotone'
@@ -46,7 +60,7 @@ export const FuelChart = ({ flightData }: { flightData: FlightData[] }) => {
           stroke='#4CAF50'
           fill='#4CAF50'
           fillOpacity={0.3}
-          name='Fuel Remaining (gal)'
+          name={`Fuel Remaining (${unit})`}
           dot={false}
           strokeWidth={2}
           isAnimationActive={false}

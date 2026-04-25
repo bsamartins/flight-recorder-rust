@@ -4,15 +4,18 @@ import { FlightData } from '../bindings/FlightData.ts';
 import { Flight } from '../bindings/Flight.ts';
 import { getFlightData } from '../commands';
 import { Event, listen } from '@tauri-apps/api/event';
+import { FuelUnit } from '../types/fuelUnit.ts';
 
 export interface FlightStoreState {
   planePosition?: PlanePosition;
   flightData: FlightData[];
   selectedFlight?: Flight;
   dataTimeout?: NodeJS.Timeout;
+  fuelUnit: FuelUnit;
 
   setSelectedFlight: (flight: Flight) => void;
   clearSelectedFlight: () => void;
+  setFuelUnit: (unit: FuelUnit) => void;
 }
 
 export const useFlightStore = create<FlightStoreState>()(
@@ -26,6 +29,7 @@ export const useFlightStore = create<FlightStoreState>()(
 
       return {
         flightData: [],
+        fuelUnit: 'gallons',
 
         setSelectedFlight: async (flight) => {
           set({ selectedFlight: flight });
@@ -61,6 +65,9 @@ export const useFlightStore = create<FlightStoreState>()(
             clearInterval(get().dataTimeout);
             set({ dataTimeout: undefined });
           }
+        },
+        setFuelUnit: (unit) => {
+          set({ fuelUnit: unit });
         },
       };
     }),
